@@ -1,6 +1,6 @@
 # Cluster Lensing 
 
-This package computes the cluster lensing signal and covariance matrices.  Both in turms of $$\gamma_t$$ and $$\Delta\Sigma$$
+This package computes the cluster lensing signal and covariance matrices.  Both in terms of $$\gamma_t$$ and $$\Delta\Sigma$$
 
 So far it is only tested on Python 2.
 
