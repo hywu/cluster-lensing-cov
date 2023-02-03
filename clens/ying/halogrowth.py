@@ -12,7 +12,7 @@ import scipy.integrate as si
 from .param import CosmoParams
 from .density import Density
 from .lineartheory import LinearTheory
-from frw import FRW
+from .frw import FRW
 from . import cex
 from . import constants as cc
 

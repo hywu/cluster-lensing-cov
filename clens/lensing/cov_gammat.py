@@ -294,6 +294,6 @@ def demo_cov(save_files=False):
 
 if __name__ == "__main__":
     #demo_var()
-    #demo_cov()
-    demo_var_slicing()
-    plt.show()
+    demo_cov()
+    #demo_var_slicing()
+    #plt.show()

@@ -7,7 +7,7 @@ from clens.lensing import cov_DeltaSigma
 class TestLensing(unittest.TestCase):
 
     def test_cov_gammat(self):
-        cov_gammat.demo_cov(save_files=True)
+        cov_gammat.demo_cov(save_files=False)
 
     def test_DeltaSigma(self):
         cov_DeltaSigma.demo_cov()

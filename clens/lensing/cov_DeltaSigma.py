@@ -204,7 +204,7 @@ def demo_cov(plotting=False):
     cds.calc_cov(rp_min=rp_min, rp_max=rp_max, n_rp=n_rp, zh_min=0.1, zh_max=0.3, Mmin=1e14, Mmax=1e16, diag_only=False)
     print(cds.cov_cosmic_shear)
     print(cds.cov_shape_noise)
-
+    '''
     ### compare with the old code
     from clens.lensing.cov_DeltaSigma_old import CovDeltaSigmaOld
     cdso = CovDeltaSigmaOld(co=co, nu=nu, su=su)
@@ -213,7 +213,7 @@ def demo_cov(plotting=False):
     #rp_mid, cov_cosmic_shear, cov_shape_noise, x = output
     print(cdso.cov_cosmic_shear)
     print(cdso.cov_shape_noise)
-
+    '''
     if plotting==True:
         plt.plot(cds.rp_mid_list, cds.cov_cosmic_shear.diagonal(), label='cosmic shear')
         plt.plot(cds.rp_mid_list, cds.cov_shape_noise.diagonal(), label='shape noise')

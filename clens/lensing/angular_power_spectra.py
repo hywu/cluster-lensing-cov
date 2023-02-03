@@ -6,7 +6,7 @@ from astropy.cosmology import FlatLambdaCDM
 
 from clens.ying.param import CosmoParams
 from clens.ying.lineartheory import LinearTheory
-from zypy.zycosmo.halofit import HALOFIT # doesn't work yet
+#from zypy.zycosmo.halofit import HALOFIT # doesn't work yet
 
 from clens.util import constants as cn
 from clens.util.parameters import CosmoParameters, NuisanceParameters
@@ -20,7 +20,7 @@ class AngularPowerSpectra(object):
     """
     calaculating various C_ell's that will be used in covariance matrices
     """
-    def __init__(self, co, nu, su, use_halofit=True):
+    def __init__(self, co, nu, su, use_halofit=False):
         self.co = co
         self.nu = nu
         self.su = su
@@ -65,19 +65,20 @@ class AngularPowerSpectra(object):
             dchi_l = self.chi(z=zl_max).value-self.chi(z=zl_min).value
             # power spectrum
             lin = LinearTheory(cosmo=self.cosmo_ying, z=zl_mid)
-            if self.use_halofit==False:
-                pk_lin = lin.power_spectrum
-            else:
-                # pshm = PowerSpectrumHaloModel()
-                # pshm.calc_uk()
-                # pshm.calc_Pk()
-                # self.pk_lin = pshm.Pk_k_interp
-                nonlin = HALOFIT(lin.power_spectrum, omega_M_z=self.co.OmegaM, omega_lambda_z=1-self.co.OmegaM)
-                lnk_list = np.linspace(np.log(1e-6), np.log(2e+4), 1000)
-                k = np.exp(lnk_list)
-                pknl   = nonlin.pk_NL(k)
-                pk_lin = interp1d(k, pknl)
-
+            #if self.use_halofit==False:
+            pk_lin = lin.power_spectrum
+            #else:
+            # pshm = PowerSpectrumHaloModel()
+            # pshm.calc_uk()
+            # pshm.calc_Pk()
+            # self.pk_lin = pshm.Pk_k_interp
+            '''
+            nonlin = HALOFIT(lin.power_spectrum, omega_M_z=self.co.OmegaM, omega_lambda_z=1-self.co.OmegaM)
+            lnk_list = np.linspace(np.log(1e-6), np.log(2e+4), 1000)
+            k = np.exp(lnk_list)
+            pknl   = nonlin.pk_NL(k)
+            pk_lin = interp1d(k, pknl)
+            '''
 
             #pk_lin = lin.power_spectrum
             k = self.ell/chi_l

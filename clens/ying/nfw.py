@@ -376,13 +376,13 @@ class NFWTest(unittest.TestCase):
         rho_mean   = 1.0
         DELTA_HALO = 1.0
         nfw = NFW(mass, c, rho_mean, DELTA_HALO)
-        print nfw
+        print(nfw)
         mass       = 1.0
         c          = 50.0
         rho_mean   = 1.0
         DELTA_HALO = 1.0
         nfw = NFW(mass, c, rho_mean, DELTA_HALO)
-        print nfw
+        print(nfw)
 
 
 if __name__ == "__main__":
