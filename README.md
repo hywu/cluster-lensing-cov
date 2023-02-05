@@ -1,6 +1,6 @@
 # Cluster Lensing 
 
-This package computes the cluster lensing signal and covariance matrices.  Both in terms of $$\gamma_t$$ and $$\Delta\Sigma$$.
+This package computes the cluster lensing signal and covariance matrices.  Both in terms of $\gamma_t$ and $\Delta\Sigma$.
 
 Put this in your `~/.bashrc`
 
@@ -11,7 +11,7 @@ Put this in your `~/.bashrc`
 
 * `clens/lensing/` contains the main code for computing lensing signals and covariance matrices.  
 
-	* `lensing_profiles.py` calculates $$\gamma_t$$ and $$\Delta\Sigma$$ profiles assuming NFW
+	* `lensing_profiles.py` calculates $\gamma_t$ and $\Delta\Sigma$ profiles assuming NFW
 
 	* `cov_DeltaSigma.py` and `cov_gammat.py` calculate the covariance matrices  
 
