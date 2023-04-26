@@ -1,7 +1,4 @@
 #!/usr/bin/env python
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -16,23 +13,20 @@ from clens.ying.halostat import HaloStat
 
 from clens.util import constants as cn
 from clens.util.parameters import CosmoParameters, NuisanceParameters, NuisanceParametersPiecewise
-from clens.util.scaling_relation import FiducialScalingRelation, PiecewiseScalingRelation
-
-
-#renamed from mean_mass/cluster_counts_lambda_min.py
+from clens.util.scaling_relation import RichnessSelection, FiducialScalingRelation
 
 
 class ClusterCounts(object):
-    def __init__(self, cosmo_parameters, nuisance_parameters, piecewise=False):
+    def __init__(self, cosmo_parameters, nuisance_parameters):
         self.cp = cosmo_parameters
         self.nu = nuisance_parameters
-        self.piecewise = piecewise
+        print(nuisance_parameters)
 
-    def calc_counts(self, zmin, zmax, lambda_min, lambda_max=100000, survey_area_sq_deg=2000.):
+    def calc_counts(self, zmin, zmax, lambda_min, lambda_max, survey_area_sq_deg):
         fsky = survey_area_sq_deg/41253.
         cosmo = FlatLambdaCDM(H0=self.cp.h*100, Om0=self.cp.OmegaM)
         vol = (cosmo.comoving_volume(zmax).value - cosmo.comoving_volume(zmin).value)*fsky
-        #print('vol', vol)
+        #print('vol', vol*1e-9)
         
         z = 0.5*(zmin+zmax)
         # using ying's mass function for now
@@ -52,30 +46,13 @@ class ClusterCounts(object):
         bias_arr = hs.bias_function
         dndlnM_arr = dndM_arr * M_arr
 
-        if self.piecewise == True:
-            psr = PiecewiseScalingRelation(norm_mid=self.nu.norm_mid, 
-                alpha_M0=self.nu.alpha_M0, alpha_M1=self.nu.alpha_M1, alpha_M2=self.nu.alpha_M2,
-                scatter0=self.nu.scatter0, scatter1=self.nu.scatter1, scatter2=self.nu.scatter2)
+        fsr = FiducialScalingRelation(self.nu)
+        rs = RichnessSelection(scaling_relation=fsr, lambda_min=lambda_min, lambda_max=lambda_max)
 
-        def lnM_selection(lnM):
-            if self.piecewise == False:
-                sr = FiducialScalingRelation(self.nu)
-                lnlambda_mean = sr.lnlambda_lnM(lnM)
-                x_lo = (np.log(lambda_min) - lnlambda_mean)/np.sqrt(2.)/self.nu.sigma_lambda
-                x_hi = (np.log(lambda_max) - lnlambda_mean)/np.sqrt(2.)/self.nu.sigma_lambda
-
-            if self.piecewise == True:
-                lnlambda_mean = np.array([psr.lnlambda_lnM_piecewise(lnM0) for lnM0 in lnM])
-                sigma_lambda_piecewise = np.array([psr.scatter_piecewise(lnM0) for lnM0 in lnM])
-                x_lo = (np.log(lambda_min) - lnlambda_mean)/np.sqrt(2.)/sigma_lambda_piecewise
-                x_hi = (np.log(lambda_max) - lnlambda_mean)/np.sqrt(2.)/sigma_lambda_piecewise
-
-            return 0.5*erfc(x_lo) - 0.5*erfc(x_hi)
-
-
-
-        lnM_selection_arr = lnM_selection(lnM_arr)
+        lnM_selection_arr = rs.lnM_selection(lnM_arr)
         self.cluster_number_density = np.trapz(dndlnM_arr*lnM_selection_arr, x=lnM_arr)
+        print('self.cluster_number_density', self.cluster_number_density)
+        
         counts = self.cluster_number_density * vol
         self.counts = counts
         # sample variance
@@ -88,25 +65,15 @@ class ClusterCounts(object):
         _sigma2_v = (sigma_r_0(_scale) * f_fgrowth(z))**2 
         sv = bn**2 * _sigma2_v
 
-
         mean_bias = bn/counts
         self.cluster_mean_bias = mean_bias
-        
 
         return counts, sv, mean_bias # #lnM_mean
 
 if __name__ == "__main__":
-    # regular
     cosmo_parameters = CosmoParameters()
     nuisance_parameters = NuisanceParameters()
-    cmm = ClusterCounts(cosmo_parameters=cosmo_parameters, nuisance_parameters=nuisance_parameters, piecewise=False)
-    cc = cmm.calc_counts(lambda_min=28, zmin=0.1, zmax=0.3)
+    cmm = ClusterCounts(cosmo_parameters=cosmo_parameters, nuisance_parameters=nuisance_parameters)
+    cc = cmm.calc_counts(zmin=0.2, zmax=0.35, lambda_min=20, lambda_max=30, survey_area_sq_deg=1000)
     print(cc)
-    '''
-    # piecewise
-    nuisance_parameters = NuisanceParametersPiecewise()
-    cmm = ClusterCounts(cosmo_parameters=cosmo_parameters, nuisance_parameters=nuisance_parameters, piecewise=True)
-    cc = cmm.calc_counts(lambda_min=28, zmin=0.1, zmax=0.3)
-    print(cc)
-    '''
 

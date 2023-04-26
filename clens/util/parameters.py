@@ -18,12 +18,10 @@ defaultCosmoParameters = {
 
 
 defaultNuisanceParameters = {
-    "lgM0":14.34,
-    "alpha_M":0.752,
-    "lambda0": 40,
-    "sigma_lambda": 1e-6, #
-    "lnMmin": 32.23619130191664,   # lnMmin=14*np.log(10): used in self-similar model only
-    "delta": 0.1
+    "lgM0": 14.6258, #log10(3e14/h) # Costanzi 21
+    "alpha_M": 1,
+    "lambda0": 70,
+    "sigma_lambda": 0.18
 }
 
 defaultNuisanceParametersPiecewise = {
@@ -92,9 +90,6 @@ class NuisanceParametersPiecewise(dict):
         return r[:-1]
 
 
-
-
-        
 if __name__ == "__main__":
 
     print(CosmoParameters())

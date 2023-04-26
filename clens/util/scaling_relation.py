@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+# from __future__ import absolute_import
+# from __future__ import division
+# from __future__ import print_function
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.special import erfc
@@ -26,8 +26,8 @@ class RichnessSelection(object):
         return 0.5*erfc(x_lo) - 0.5*erfc(x_hi)
 
 
-class FiducialScalingRelation(object): # Simet values
-    def __init__(self, nuisance):# lgM0 = 14.34, alpha_M = 0.752, lambda0=40, scatter=0.5):
+class FiducialScalingRelation(object):
+    def __init__(self, nuisance):
         self.lgM0 = nuisance.lgM0
         self.alpha_M = nuisance.alpha_M
         self.lambda0 = nuisance.lambda0
