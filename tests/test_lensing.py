@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import unittest
-from clens.lensing import cov_gammat
+#from clens.lensing import cov_gammat # TODO: not working for now
 from clens.lensing import cov_DeltaSigma
 
 class TestLensing(unittest.TestCase):
