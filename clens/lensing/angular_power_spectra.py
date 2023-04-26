@@ -19,6 +19,7 @@ from clens.lensing.pk_hm_halomodel import PowerSpectrumHaloMatter
 class AngularPowerSpectra(object):
     """
     calaculating various C_ell's that will be used in covariance matrices
+    update Sep 2019: ell+1/2 in Limber
     """
     def __init__(self, co, nu, su, use_halofit=False):
         self.co = co
@@ -65,23 +66,22 @@ class AngularPowerSpectra(object):
             dchi_l = self.chi(z=zl_max).value-self.chi(z=zl_min).value
             # power spectrum
             lin = LinearTheory(cosmo=self.cosmo_ying, z=zl_mid)
-            #if self.use_halofit==False:
-            pk_lin = lin.power_spectrum
-            #else:
-            # pshm = PowerSpectrumHaloModel()
-            # pshm.calc_uk()
-            # pshm.calc_Pk()
-            # self.pk_lin = pshm.Pk_k_interp
-            '''
-            nonlin = HALOFIT(lin.power_spectrum, omega_M_z=self.co.OmegaM, omega_lambda_z=1-self.co.OmegaM)
-            lnk_list = np.linspace(np.log(1e-6), np.log(2e+4), 1000)
-            k = np.exp(lnk_list)
-            pknl   = nonlin.pk_NL(k)
-            pk_lin = interp1d(k, pknl)
-            '''
+            if self.use_halofit==False:
+                pk_lin = lin.power_spectrum
+            else:
+                # pshm = PowerSpectrumHaloModel()
+                # pshm.calc_uk()
+                # pshm.calc_Pk()
+                # self.pk_lin = pshm.Pk_k_interp
+                nonlin = HALOFIT(lin.power_spectrum, omega_M_z=self.co.OmegaM, omega_lambda_z=1-self.co.OmegaM)
+                lnk_list = np.linspace(np.log(1e-6), np.log(2e+4), 1000)
+                k = np.exp(lnk_list)
+                pknl   = nonlin.pk_NL(k)
+                pk_lin = interp1d(k, pknl)
+
 
             #pk_lin = lin.power_spectrum
-            k = self.ell/chi_l
+            k = (self.ell+0.5)/chi_l
             #print('k range', min(k), max(k))
             Pmm_ell = pk_lin(k)
             summand =  dchi_l * kernel**2 / chi_l**2 * Pmm_ell
@@ -131,7 +131,7 @@ class AngularPowerSpectra(object):
                 pk_lin = interp1d(k, pknl)
 
             #pk_lin = lin.power_spectrum
-            k = self.ell/chi_l
+            k = (self.ell+0.5)/chi_l
             #print('k range', min(k), max(k))
             Pmm_ell = pk_lin(k)
             summand =  dchi_l * kernel**2 / chi_l**2 * Pmm_ell
@@ -146,7 +146,7 @@ class AngularPowerSpectra(object):
         self.shape_noise_for_Sigma = self.su.sigma_gamma**2/n_src_sr * mean_Sigma_crit**2 
 
     ###### halo-halo ######
-    def calc_C_ell_h(self, zh_min, zh_max, Mmin, Mmax):
+    def calc_C_ell_h(self, zh_min, zh_max, lambda_min, lambda_max):
         print('calculating C_ell_h')
         # edge of the z bins, 20 bins per dz=1
         nzh = max(int((zh_max-zh_min)/0.1),1) # at least one redshift slice...
@@ -158,7 +158,7 @@ class AngularPowerSpectra(object):
         # get the halo number density and bias
         survey_area_sq_deg = 41253./48.# exact value doesn't matter
         cc = ClusterCounts(cosmo_parameters=self.co, nuisance_parameters=self.nu)
-        cc.calc_counts(lambda_min=Mmin, zmin=zh_min, zmax=zh_max, survey_area_sq_deg=survey_area_sq_deg, lambda_max=Mmax)
+        cc.calc_counts(zmin=zh_min, zmax=zh_max, lambda_min=lambda_min, lambda_max=lambda_max, survey_area_sq_deg=survey_area_sq_deg)
         #n_h_Mpc3 = cc.cluster_number_density
         area_sr = 4.*np.pi*survey_area_sq_deg/41253.
         print('cc.counts', cc.counts)
@@ -180,7 +180,7 @@ class AngularPowerSpectra(object):
             # power spectrum
             lin = LinearTheory(cosmo=self.cosmo_ying, z=zh_mid)
             pk_lin = lin.power_spectrum
-            k = self.ell/chi_h
+            k = (self.ell+0.5)/chi_h
             Pmm_ell = pk_lin(k)
             summand = dchi_h * chi_h**2 * b**2 * Pmm_ell
             C_ell_sum += summand
@@ -191,12 +191,11 @@ class AngularPowerSpectra(object):
         self.shot_noise = 1./n_h_sr
 
     ###### halo-matter ######
+    '''
     def calc_C_ell_h_kappa(self, zh_min, zh_max, Mmin, Mmax):
         print('calculating C_ell_h_kappa')
-        ## the zbin should be the narrower of (zs_min, zs_max) and (zh_min, zh_max)
-        ## if not doing this, the slicing results would be inconsistent
-        zint_min = max(self.su.zs_min, zh_min) # min for integration
-        zint_max = min(self.su.zs_max, zh_max) # max for integration
+        zint_min = zh_min # min for integration
+        zint_max = zh_max # max for integration
         nzh = max(int((zint_max-zint_min)/0.1),1)
         zh_bins = np.linspace(zint_min, zint_max, nzh+1)
         #nzh = max(int((zh_max-zh_min)/0.1),1)
@@ -205,13 +204,13 @@ class AngularPowerSpectra(object):
         zh_max_list = zh_bins[1:]
 
         # get the halo number density and bias
-        survey_area_sq_deg = 1. # not important
-        cc = ClusterCounts(cosmo_parameters=self.co, nuisance_parameters=self.nu)
-        cc.calc_counts(lambda_min=Mmin, zmin=zh_min, zmax=zh_max, survey_area_sq_deg=survey_area_sq_deg, lambda_max=Mmax)
+        # survey_area_sq_deg = 1. # not important
+        # cc = ClusterCounts(cosmo_parameters=self.co, nuisance_parameters=self.nu)
+        # cc.calc_counts(lambda_min=Mmin, zmin=zh_min, zmax=zh_max, survey_area_sq_deg=survey_area_sq_deg, lambda_max=Mmax)
         # n_h_Mpc3 = cc.cluster_number_density
         # area_sr2 = 4.*np.pi*survey_area_sq_deg/41253.
         # n_h_sr2 = cc.counts/area_sr2
-        b = cc.cluster_mean_bias
+        #b = cc.cluster_mean_bias
         #print('for Chk, bias', b)
         #print('n_h_sr2, b', n_h_sr2, b)
 
@@ -224,7 +223,7 @@ class AngularPowerSpectra(object):
             dchi_h = self.chi(z=zh_max_list[izh]).value-self.chi(z=zh_min_list[izh]).value
             vol_sum += dchi_h * chi_h**2
 
-            k = self.ell/chi_h
+            k = (self.ell+0.5)/chi_h
             #print('zh', zh_mid)
             # power spectrum.  Use pk_hm_halomodel!
             pk_hm = PowerSpectrumHaloMatter(co=self.co, nu=self.nu, su=self.su, zh=zh_mid)
@@ -240,7 +239,7 @@ class AngularPowerSpectra(object):
 
         self.ell_h_kappa = self.ell
         self.C_ell_h_kappa = C_ell_sum
-
+    
 
     ###### halo-matter ######
     def calc_C_ell_h_Sigma(self, zh_min, zh_max, Mmin, Mmax):
@@ -248,8 +247,8 @@ class AngularPowerSpectra(object):
         self.lk.calc_kernel_Sigma(0.5*(zh_min+zh_max))
         ## the zbin should be the narrower of (zs_min, zs_max) and (zh_min, zh_max)
         ## if not doing this, the slicing results would be inconsistent
-        zint_min = max(self.su.zs_min, zh_min) # min for integration
-        zint_max = min(self.su.zs_max, zh_max) # max for integration
+        zint_min = zh_min#max(self.su.zs_min, zh_min) # min for integration
+        zint_max = zh_max#min(self.su.zs_max, zh_max) # max for integration
         nzh = max(int((zint_max-zint_min)/0.1),1)
         zh_bins = np.linspace(zint_min, zint_max, nzh+1)
         #zh_bins = np.linspace(zh_min, zh_max, nzh+1)
@@ -264,7 +263,7 @@ class AngularPowerSpectra(object):
             dchi_h = self.chi(z=zh_max_list[izh]).value-self.chi(z=zh_min_list[izh]).value
             vol_sum += dchi_h * chi_h**2
 
-            k = self.ell/chi_h
+            k = (self.ell+0.5)/chi_h
             #print('zh', zh_mid)
             # power spectrum.  Use pk_hm_halomodel!
             pk_hm = PowerSpectrumHaloMatter(co=self.co, nu=self.nu, su=self.su, zh=zh_mid)
@@ -280,16 +279,16 @@ class AngularPowerSpectra(object):
 
         self.ell_h_Sigma = self.ell
         self.C_ell_h_Sigma = C_ell_sum
-
+    '''
 if __name__ == "__main__":
     co = CosmoParameters()
-    nu = NuisanceParameters(sigma_lambda=1e-5, lgM0=0, alpha_M=1, lambda0=1)#1-1,no scatter
+    nu = NuisanceParameters()#sigma_lambda=1e-5, lgM0=0, alpha_M=1, lambda0=1)#1-1,no scatter
     su = Survey()
     aps = AngularPowerSpectra(co=co, nu=nu, su=su)
-    #aps.calc_C_ell_h(zh_min=0.1, zh_max=0.3, Mmin=1e14, Mmax=1e16)
+    aps.calc_C_ell_h(zh_min=0.2, zh_max=0.35, lambda_min=20, lambda_max=30)
     # aps.calc_C_ell_h_kappa(zh_min=0.1, zh_max=0.3, Mmin=1e14, Mmax=1e16)
     # plt.loglog(aps.ell_h_kappa, aps.C_ell_h_kappa)
-    aps.calc_C_ell_h_Sigma(0.1, 0.3, 1e+14, 1e+16)
-    plt.loglog(aps.ell_h_Sigma, aps.C_ell_h_Sigma)
+    #aps.calc_C_ell_h_Sigma(0.1, 0.3, 1e+14, 1e+16)
+    #plt.loglog(aps.ell_h_Sigma, aps.C_ell_h_Sigma)
 
-    plt.show()
+    #plt.show()
