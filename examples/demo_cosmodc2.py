@@ -28,7 +28,6 @@ class DemoCosmoDC2(object):
         self.rp_min = rp_min_hiMpc/co.h
         self.rp_max = rp_max_hiMpc/co.h
         self.n_rp = n_rp
-        self.scatter = self.nu.sigma_lambda
 
         astropy_dist = FlatLambdaCDM(H0=self.co.h*100, Om0=self.co.OmegaM)
         self.chi = astropy_dist.comoving_distance
@@ -67,14 +66,15 @@ class DemoCosmoDC2(object):
         np.savetxt(self.cov_combined_fname, cov_combined) ## key results!
 
 if __name__ == "__main__":
-    ## ./demo_cosmodc2.py 0.2 0.35 1.25 20 30 15 0
+    ## ./demo_cosmodc2.py 0.2 0.35 20 30 15
     zh_min = float(sys.argv[1])
     zh_max =  float(sys.argv[2])
-    zs_mid = float(sys.argv[3]) 
-    lambda_min = float(sys.argv[4])
-    lambda_max = float(sys.argv[5]) 
+    lambda_min = float(sys.argv[3])
+    lambda_max = float(sys.argv[4]) 
     n_rp = int(sys.argv[6])
-    scatter = float(sys.argv[7])
+    output_loc = 'temp/'
+
+    zs_mid = 2 * zh_max 
 
     survey_area = 5000.
     fsky = survey_area / 41253.
@@ -83,5 +83,5 @@ if __name__ == "__main__":
     nu = NuisanceParameters(sigma_lambda=0.18, lgM0=14.6258, alpha_M=1, lambda0=70) # Costanzi21 for now
     su = Survey(top_hat=True, zs_min=zs_mid-0.05, zs_max=zs_mid+0.05, n_src_arcmin=10)
 
-    cp = DemoCosmoDC2(co=co, nu=nu, su=su, zh_min=zh_min, zh_max=zh_max, lambda_min=lambda_min, lambda_max=lambda_max, rp_min_hiMpc=0.1, rp_max_hiMpc=100., n_rp=n_rp, output_loc='temp/')
-    cp.calc_cov_full(diag_only=True) # takes some time
+    cp = DemoCosmoDC2(co=co, nu=nu, su=su, zh_min=zh_min, zh_max=zh_max, lambda_min=lambda_min, lambda_max=lambda_max, rp_min_hiMpc=0.1, rp_max_hiMpc=100., n_rp=n_rp, output_loc=output_loc)
+    cp.calc_cov_full(diag_only=False) # takes some time
