@@ -9,8 +9,9 @@ from clens.ying.lineartheory import LinearTheory
 #from zypy.zycosmo.halofit import HALOFIT # doesn't work yet
 
 from clens.util import constants as cn
-from clens.util.parameters import CosmoParameters, NuisanceParameters
+from clens.util.parameters import CosmoParameters
 from clens.util.survey import Survey
+from clens.util.scaling_relation import RichnessSelection, FiducialScalingRelation, Costanzi21ScalingRelation
 from clens.util.cluster_counts import ClusterCounts
 from clens.lensing.lensing_kernel import LensingKernel
 from clens.lensing.pk_hm_halomodel import PowerSpectrumHaloMatter
@@ -21,10 +22,10 @@ class AngularPowerSpectra(object):
     calaculating various C_ell's that will be used in covariance matrices
     update Sep 2019: ell+1/2 in Limber
     """
-    def __init__(self, co, nu, su, use_halofit=False):
+    def __init__(self, co, su, sr, use_halofit=False):
         self.co = co
-        self.nu = nu
         self.su = su
+        self.sr = sr
         self.use_halofit = use_halofit
 
         rho_crit = cn.rho_crit_with_h * co.h**2
@@ -102,8 +103,6 @@ class AngularPowerSpectra(object):
         nzl = max(int((zl_max-zl_min)/0.1), 1)# at least one redshift slice
         #print('z range', zl_min, zl_max, 'nz', nzl)
         zl_bins = np.linspace(zl_min, zl_max, nzl+1)
-
-
         zl_min_list = zl_bins[:-1]
         zl_max_list = zl_bins[1:]
 
@@ -157,7 +156,7 @@ class AngularPowerSpectra(object):
 
         # get the halo number density and bias
         survey_area_sq_deg = 41253./48.# exact value doesn't matter
-        cc = ClusterCounts(cosmo_parameters=self.co, nuisance_parameters=self.nu)
+        cc = ClusterCounts(cosmo_parameters=self.co, scaling_relation=self.sr)
         cc.calc_counts(zmin=zh_min, zmax=zh_max, lambda_min=lambda_min, lambda_max=lambda_max, survey_area_sq_deg=survey_area_sq_deg)
         #n_h_Mpc3 = cc.cluster_number_density
         area_sr = 4.*np.pi*survey_area_sq_deg/41253.
@@ -282,9 +281,10 @@ class AngularPowerSpectra(object):
     '''
 if __name__ == "__main__":
     co = CosmoParameters()
-    nu = NuisanceParameters()#sigma_lambda=1e-5, lgM0=0, alpha_M=1, lambda0=1)#1-1,no scatter
+    sr = FiducialScalingRelation()
+    #sr = Costanzi21ScalingRelation()
     su = Survey()
-    aps = AngularPowerSpectra(co=co, nu=nu, su=su)
+    aps = AngularPowerSpectra(co=co, su=su, sr=sr)
     aps.calc_C_ell_h(zh_min=0.2, zh_max=0.35, lambda_min=20, lambda_max=30)
     # aps.calc_C_ell_h_kappa(zh_min=0.1, zh_max=0.3, Mmin=1e14, Mmax=1e16)
     # plt.loglog(aps.ell_h_kappa, aps.C_ell_h_kappa)

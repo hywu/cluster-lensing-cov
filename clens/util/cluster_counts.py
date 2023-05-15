@@ -12,15 +12,15 @@ from clens.ying.density import Density
 from clens.ying.halostat import HaloStat
 
 from clens.util import constants as cn
-from clens.util.parameters import CosmoParameters, NuisanceParameters, NuisanceParametersPiecewise
-from clens.util.scaling_relation import RichnessSelection, FiducialScalingRelation
+from clens.util.parameters import CosmoParameters#, NuisanceParameters, NuisanceParametersPiecewise
+from clens.util.scaling_relation import RichnessSelection, FiducialScalingRelation, Costanzi21ScalingRelation
 
 
 class ClusterCounts(object):
-    def __init__(self, cosmo_parameters, nuisance_parameters):
+    def __init__(self, cosmo_parameters, scaling_relation):
         self.cp = cosmo_parameters
-        self.nu = nuisance_parameters
-        print(nuisance_parameters)
+        self.sr = scaling_relation
+        #print(nuisance_parameters)
 
     def calc_counts(self, zmin, zmax, lambda_min, lambda_max, survey_area_sq_deg):
         fsky = survey_area_sq_deg/41253.
@@ -46,10 +46,9 @@ class ClusterCounts(object):
         bias_arr = hs.bias_function
         dndlnM_arr = dndM_arr * M_arr
 
-        fsr = FiducialScalingRelation(self.nu)
-        rs = RichnessSelection(scaling_relation=fsr, lambda_min=lambda_min, lambda_max=lambda_max)
+        rs = RichnessSelection(scaling_relation=self.sr, lambda_min=lambda_min, lambda_max=lambda_max)
 
-        lnM_selection_arr = rs.lnM_selection(lnM_arr)
+        lnM_selection_arr = rs.lnM_selection(lnM_arr, z)
         self.cluster_number_density = np.trapz(dndlnM_arr*lnM_selection_arr, x=lnM_arr)
         print('self.cluster_number_density', self.cluster_number_density)
         
@@ -72,8 +71,9 @@ class ClusterCounts(object):
 
 if __name__ == "__main__":
     cosmo_parameters = CosmoParameters()
-    nuisance_parameters = NuisanceParameters()
-    cmm = ClusterCounts(cosmo_parameters=cosmo_parameters, nuisance_parameters=nuisance_parameters)
+    scaling_relation = FiducialScalingRelation()
+    #scaling_relation = Costanzi21ScalingRelation()
+    cmm = ClusterCounts(cosmo_parameters=cosmo_parameters, scaling_relation=scaling_relation)
     cc = cmm.calc_counts(zmin=0.2, zmax=0.35, lambda_min=20, lambda_max=30, survey_area_sq_deg=1000)
     print(cc)
 

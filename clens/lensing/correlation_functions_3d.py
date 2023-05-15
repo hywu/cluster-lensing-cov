@@ -14,11 +14,11 @@ from clens.ying.halostat import HaloStat
 
 import clens.util.constants as cn
 from clens.util.parameters import CosmoParameters, NuisanceParameters
-from clens.util.scaling_relation import RichnessSelection, FiducialScalingRelation
+from clens.util.scaling_relation import RichnessSelection, FiducialScalingRelation, Costanzi21ScalingRelation
 
 
 ### TODO! using cosmo-dependent concentration or not???
-
+### this code is awefully slow
 
 class CorrelationFunctions3D(object):
     """
@@ -26,10 +26,10 @@ class CorrelationFunctions3D(object):
     xi_hm (without richness-mass relation)
     xi_cm (*with* richness-mass relation)
     """
-    def __init__(self, z, co, nu, lambda_min, lambda_max, cM_reln='Correa'):
+    def __init__(self, z, co, sr, lambda_min, lambda_max, cM_reln='Correa'):
         self.z = z
         self.co = co
-        self.nu = nu
+        self.sr = sr
         self.cM_reln = cM_reln
 
         self.cosmo_ying = CosmoParams(omega_M_0=self.co.OmegaM, omega_b_0=self.co.OmegaB, omega_lambda_0=self.co.OmegaDE, h=self.co.h, sigma_8=self.co.sigma8, n=self.co.ns, tau=self.co.tau) # Ying's
@@ -40,9 +40,10 @@ class CorrelationFunctions3D(object):
         self.set_up_halos(self.z)
         rho_crit = cn.rho_crit_with_h * self.co.h**2  # h-free
         self.rho_mean_z = rho_crit * self.co.OmegaM # comoving density!
-        self.fsr = FiducialScalingRelation(self.nu)
+        
+        #self.fsr = FiducialScalingRelation(self.nu)
         #print('lambda_min, lambda_max %e %e'%(lambda_min, lambda_max))
-        self.rs = RichnessSelection(scaling_relation=self.fsr, lambda_min=lambda_min, lambda_max=lambda_max)
+        self.rs = RichnessSelection(scaling_relation=self.sr, lambda_min=lambda_min, lambda_max=lambda_max)
 
     def set_up_radius(self):
         # set up 3D r
@@ -149,7 +150,7 @@ class CorrelationFunctions3D(object):
 
     def xi_cm(self): # integrate over the mass function
         nM = len(self.lnM_arr)
-        lnM_selection_arr = self.rs.lnM_selection(self.lnM_arr)
+        lnM_selection_arr = self.rs.lnM_selection(self.lnM_arr, self.z)
         dndlnM_arr = self.dndlnM_lnM_interp(self.lnM_arr)
         xi_mass_radius = np.zeros([nM,self.nrbin])
         for iM, lnM in enumerate(self.lnM_arr):
@@ -211,8 +212,9 @@ class CorrelationFunctions3D(object):
 
 if __name__ == "__main__":
     co = CosmoParameters()
-    nu = NuisanceParameters()
-    cf3d = CorrelationFunctions3D(z=0.275, co=co, nu=nu, lambda_min=20, lambda_max=30)
+    #nu = NuisanceParameters()
+    sr = Costanzi21ScalingRelation()
+    cf3d = CorrelationFunctions3D(z=0.275, co=co, sr=sr, lambda_min=20, lambda_max=30)
     #cf3d.mean_density_and_bias()
     cf3d.plot_sanity()
 

@@ -4,7 +4,8 @@ import matplotlib.pyplot as plt
 import os, sys
 
 from astropy.cosmology import FlatLambdaCDM
-from clens.util.parameters import CosmoParameters, NuisanceParameters
+from clens.util.parameters import CosmoParameters#, NuisanceParameters
+from clens.util.scaling_relation import FiducialScalingRelation, Costanzi21ScalingRelation
 from clens.util.survey import Survey
 from clens.lensing.cov_DeltaSigma import CovDeltaSigma
 
@@ -12,10 +13,10 @@ class DemoCosmoDC2(object):
     """
     calculating covariance matrix at the given lens redshift, source redshift, lambda range, radial range
     """
-    def __init__(self, co, nu, su, zh_min, zh_max, lambda_min, lambda_max, rp_min_hiMpc, rp_max_hiMpc, n_rp, output_loc):
+    def __init__(self, co, su, sr, zh_min, zh_max, lambda_min, lambda_max, rp_min_hiMpc, rp_max_hiMpc, n_rp, output_loc):
         self.co = co
-        self.nu = nu
         self.su = su
+        self.sr = sr
         self.zs_mid = 0.5 * (self.su.zs_min+self.su.zs_max)
 
         self.zh_min = zh_min
@@ -56,7 +57,7 @@ class DemoCosmoDC2(object):
         self.cov_combined_fname = self.output_loc+'DeltaSigma_cov_combined.dat' ## key results!
 
     def calc_cov_full(self, diag_only):
-        cds = CovDeltaSigma(co=self.co, nu=self.nu, su=self.su, fsky=fsky)
+        cds = CovDeltaSigma(co=self.co, su=self.su, sr=self.sr, fsky=fsky)
         output = cds.calc_cov(lambda_min=self.lambda_min, lambda_max=self.lambda_max, zh_min=self.zh_min, zh_max=self.zh_max, rp_min=self.rp_min, rp_max=self.rp_max, n_rp=self.n_rp, diag_only=diag_only)
         rp_mid, cov_cosmic_shear, cov_shape_noise = output
         cov_combined = cov_cosmic_shear/self.co.h**2 + cov_shape_noise/self.co.h**2
@@ -71,7 +72,7 @@ if __name__ == "__main__":
     zh_max =  float(sys.argv[2])
     lambda_min = float(sys.argv[3])
     lambda_max = float(sys.argv[4]) 
-    n_rp = int(sys.argv[6])
+    n_rp = int(sys.argv[5])
     output_loc = 'temp/'
 
     zs_mid = 2 * zh_max 
@@ -80,8 +81,8 @@ if __name__ == "__main__":
     fsky = survey_area / 41253.
 
     co = CosmoParameters(h=0.701, OmegaDE=0.7352, OmegaM=0.2648, sigma8=0.8) # CosmoDC2
-    nu = NuisanceParameters(sigma_lambda=0.18, lgM0=14.6258, alpha_M=1, lambda0=70) # Costanzi21 for now
+    sr = Costanzi21ScalingRelation()
     su = Survey(top_hat=True, zs_min=zs_mid-0.05, zs_max=zs_mid+0.05, n_src_arcmin=10)
 
-    cp = DemoCosmoDC2(co=co, nu=nu, su=su, zh_min=zh_min, zh_max=zh_max, lambda_min=lambda_min, lambda_max=lambda_max, rp_min_hiMpc=0.1, rp_max_hiMpc=100., n_rp=n_rp, output_loc=output_loc)
+    cp = DemoCosmoDC2(co=co, su=su, sr=sr, zh_min=zh_min, zh_max=zh_max, lambda_min=lambda_min, lambda_max=lambda_max, rp_min_hiMpc=0.1, rp_max_hiMpc=100., n_rp=n_rp, output_loc=output_loc)
     cp.calc_cov_full(diag_only=False) # takes some time

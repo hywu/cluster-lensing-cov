@@ -6,34 +6,33 @@ from scipy.interpolate import interp1d
 from astropy.cosmology import FlatLambdaCDM
 
 import clens.util.constants as cn
-from clens.util.parameters import CosmoParameters, NuisanceParameters
+from clens.util.parameters import CosmoParameters#, NuisanceParameters
+from clens.util.scaling_relation import FiducialScalingRelation, Costanzi21ScalingRelation
 from clens.util.survey import Survey
 
 from clens.lensing.angular_power_spectra import AngularPowerSpectra
 from clens.lensing.bessel_for_cov_theta import BesselForCovTheta
 from clens.lensing.lensing_profiles import LensingProfiles
 
-# TODO: no intrinsic yet
 
 class CovDeltaSigma(object):
     """
     cluster lensing (DeltaSigma) covariance matrix based on angular power spectrum
-    default output is for all sky
     works for a wide range of source redshift (specified in Survey class)
     works for a *thin* slice of halo redshift
     NOTE: all units are h-free
-    NOTE: don't use the intrinsic variance yet
+    NOTE: there's no intrinsic variance yet
     """
-    def __init__(self, co, nu, su, fsky, slicing=False, dz_slicing=0, halo_shot_noise_only=False, cosmic_shear_no_shot=False):
+    def __init__(self, co, su, sr, fsky, slicing=False, dz_slicing=0, halo_shot_noise_only=False, cosmic_shear_no_shot=False):
         """
         Args:
             co: CosmoParameters object
-            nu: NuisanceParameters object
             su: Survey object
+            sr: ScalingRelation object
         """
         self.co = co
-        self.nu = nu
         self.su = su
+        self.sr = sr
         self.fsky = fsky
         self.slicing = slicing
         self.dz_slicing = dz_slicing
@@ -43,13 +42,13 @@ class CovDeltaSigma(object):
         else:
             self.cosmic_shear_no_shot = cosmic_shear_no_shot
 
-        self.aps = AngularPowerSpectra(co=self.co, nu=self.nu, su=self.su)
+        self.aps = AngularPowerSpectra(co=self.co, su=self.su, sr=self.sr)
         self.bf = BesselForCovTheta()
         astropy_dist = FlatLambdaCDM(H0=self.co.h*100, Om0=self.co.OmegaM)
         self.chi = astropy_dist.comoving_distance
 
     def calc_mean(self, lambda_min, lambda_max, zh_min, zh_max, rp_min=0.1, rp_max=100):
-        lp = LensingProfiles(co=self.co, nu=self.nu, su=self.su, zh_min=zh_min, zh_max=zh_max, lambda_min=lambda_min, lambda_max=lambda_max)
+        lp = LensingProfiles(co=self.co, su=self.su, zh_min=zh_min, zh_max=zh_max, lambda_min=lambda_min, lambda_max=lambda_max)
         rp, DeltaSigma = lp.calc_DeltaSigma()
         select = (rp >= rp_min)&(rp <= rp_max)
         return rp[select], DeltaSigma[select]
@@ -176,7 +175,7 @@ class CovDeltaSigma(object):
         self.rp_min_list = thmin_list * chi_h
         self.rp_max_list = thmax_list * chi_h
         self.rp_mid_list = thmid_list * chi_h
-        return self.rp_mid_list, self.cov_cosmic_shear, self.cov_shape_noise#, self.cov_halo_intrinsic
+        return self.rp_mid_list, self.cov_cosmic_shear, self.cov_shape_noise #, self.cov_halo_intrinsic
 
 
 
@@ -198,10 +197,12 @@ class CovDeltaSigma(object):
 
 def demo_cov(plotting=False):
     co = CosmoParameters()#OmegaM=0.286, sigma8=0.82, h=0.7, OmegaDE=0.714)
-    nu = NuisanceParameters()#sigma_lambda=1e-5, lgM0=0, alpha_M=1, lambda0=1)#1-1,no scatter
+    #nu = NuisanceParameters()#sigma_lambda=1e-5, lgM0=0, alpha_M=1, lambda0=1)#1-1,no scatter
+    sr = Costanzi21ScalingRelation()
+    #sr = FiducialScalingRelation(nu)
     su = Survey(zs_min=0.56, zs_max=0.65, top_hat=True, n_src_arcmin=10, sigma_gamma=0.3)
     fsky = 5000. / 41253.
-    cds = CovDeltaSigma(co=co, nu=nu, su=su, fsky=fsky)
+    cds = CovDeltaSigma(co=co, su=su, sr=sr, fsky=fsky)
     rp_min = 1
     rp_max = 10
     n_rp = 2 #5
