@@ -50,8 +50,24 @@ class Costanzi21ScalingRelation(object):
         sigma_sqr = self.Dlam**2 + (lam - 1)/lam**2
         return np.sqrt(sigma_sqr)
 
-#class Murata19ScalingRelation(object): # TODO
+class Murata18ScalingRelation(object):
+    def __init__(self, A_M18=3.207, B_M18=0.993, sigma0_M18=0.456, q_M18=-0.169):
+        self.A_M18 = A_M18
+        self.B_M18 = B_M18
 
+        self.sigma0_M18 = sigma0_M18
+        self.q_M18 = q_M18
+
+        self.lnMpivot_Msun = np.log(3e14/0.7)
+
+    def lnlambda_lnM(self, lnM, z):
+        lnMpivot_Msun = np.log(3e14/0.7)
+        return self.A_M18 + self.B_M18 * (lnM - self.lnMpivot_Msun)
+
+    def scatter(self, lnM, z):
+        sigma = self.sigma0_M18 + self.q_M18 * (lnM - self.lnMpivot_Msun)
+        sigma[sigma <= 1e-8] = 1e-8  # avoid negative values
+        return sigma
 
 def plot_lambda_M(scaling_relation):
     lgM_arr = np.arange(13.5,15.1,0.01)

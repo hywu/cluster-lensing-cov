@@ -7,7 +7,7 @@ from astropy.cosmology import FlatLambdaCDM
 
 import clens.util.constants as cn
 from clens.util.parameters import CosmoParameters#, NuisanceParameters
-from clens.util.scaling_relation import FiducialScalingRelation, Costanzi21ScalingRelation
+from clens.util.scaling_relation import FiducialScalingRelation, Costanzi21ScalingRelation, Murata18ScalingRelation
 from clens.util.survey import Survey
 
 from clens.lensing.angular_power_spectra import AngularPowerSpectra
@@ -196,10 +196,10 @@ class CovDeltaSigma(object):
 
 
 def demo_cov(plotting=False):
-    co = CosmoParameters()#OmegaM=0.286, sigma8=0.82, h=0.7, OmegaDE=0.714)
-    #nu = NuisanceParameters()#sigma_lambda=1e-5, lgM0=0, alpha_M=1, lambda0=1)#1-1,no scatter
+    co = CosmoParameters()
+    #sr = FiducialScalingRelation()
     sr = Costanzi21ScalingRelation()
-    #sr = FiducialScalingRelation(nu)
+    #sr = Murata18ScalingRelation()
     su = Survey(zs_min=0.56, zs_max=0.65, top_hat=True, n_src_arcmin=10, sigma_gamma=0.3)
     fsky = 5000. / 41253.
     cds = CovDeltaSigma(co=co, su=su, sr=sr, fsky=fsky)
@@ -209,28 +209,7 @@ def demo_cov(plotting=False):
     cds.calc_cov(rp_min=rp_min, rp_max=rp_max, n_rp=n_rp, zh_min=0.2, zh_max=0.35, lambda_min=20, lambda_max=30, diag_only=True)
     print(cds.cov_cosmic_shear)
     print(cds.cov_shape_noise)
-    '''
-    ### compare with the old code
-    from clens.lensing.cov_DeltaSigma_old import CovDeltaSigmaOld
-    cdso = CovDeltaSigmaOld(co=co, nu=nu, su=su)
-    ## cov
-    output = cdso.calc_cov_thin_slice(rp_min=rp_min, rp_max=rp_max, n_rp=n_rp, zh_min=0.1, zh_max=0.3, Mmin=1e14, Mmax=1e16)
-    #rp_mid, cov_cosmic_shear, cov_shape_noise, x = output
-    print(cdso.cov_cosmic_shear)
-    print(cdso.cov_shape_noise)
-    
-    if plotting==True:
-        plt.plot(cds.rp_mid_list, cds.cov_cosmic_shear.diagonal(), label='cosmic shear')
-        plt.plot(cds.rp_mid_list, cds.cov_shape_noise.diagonal(), label='shape noise')
-        #plt.plot(cds.rp_mid_list, cds.cov_halo_intrinsic.diagonal(), label='halo intrinsic')
-        #plt.plot(cds.thmid_list*cn.radian_to_arcmin, cds.cov_sum.diagonal(), label='sum')
-        plt.legend()
-        plt.xscale('log')
-        plt.yscale('log')
-        plt.xlabel(r'$\rm r_p\ [Mpc]$')
-        plt.ylabel(r'$\rm Var[\Delta\Sigma]$')
-        plt.show()
-    '''
+
 if __name__ == "__main__":
     demo_cov()#plotting=True)
     #demo_var_slicing()
