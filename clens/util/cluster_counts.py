@@ -12,9 +12,8 @@ from clens.ying.density import Density
 from clens.ying.halostat import HaloStat
 
 from clens.util import constants as cn
-from clens.util.parameters import CosmoParameters#, NuisanceParameters, NuisanceParametersPiecewise
-from clens.util.scaling_relation import RichnessSelection, FiducialScalingRelation, Costanzi21ScalingRelation
-
+from clens.util.parameters import CosmoParameters
+from clens.util.scaling_relation import RichnessSelection, FiducialScalingRelation, Costanzi21ScalingRelation, To21ScalingRelation
 
 class ClusterCounts(object):
     def __init__(self, cosmo_parameters, scaling_relation):
@@ -25,9 +24,9 @@ class ClusterCounts(object):
     def calc_counts(self, zmin, zmax, lambda_min, lambda_max, survey_area_sq_deg):
         fsky = survey_area_sq_deg/41253.
         cosmo = FlatLambdaCDM(H0=self.cp.h*100, Om0=self.cp.OmegaM)
-        vol = (cosmo.comoving_volume(zmax).value - cosmo.comoving_volume(zmin).value)*fsky
-        #print('vol', vol*1e-9)
-        
+        vol = fsky * 4. * np.pi/3. * (cosmo.comoving_distance(zmax).value**3 - cosmo.comoving_distance(zmin).value**3)
+        print('vol', vol)
+
         z = 0.5*(zmin+zmax)
         # using ying's mass function for now
         self.cosmo = CosmoParams(omega_M_0=self.cp.OmegaM, omega_b_0=self.cp.OmegaB, omega_lambda_0=self.cp.OmegaDE, h=self.cp.h, sigma_8=self.cp.sigma8, n=self.cp.ns, tau=self.cp.tau)
@@ -70,10 +69,12 @@ class ClusterCounts(object):
         return counts, sv, mean_bias # #lnM_mean
 
 if __name__ == "__main__":
-    cosmo_parameters = CosmoParameters()
-    scaling_relation = FiducialScalingRelation()
+    #cosmo_parameters = CosmoParameters()
+    cosmo_parameters = CosmoParameters(h=0.7, OmegaDE=0.724, OmegaM=0.276, sigma8=0.802)
+    #scaling_relation = FiducialScalingRelation()
     #scaling_relation = Costanzi21ScalingRelation()
+    scaling_relation = To21ScalingRelation()
     cmm = ClusterCounts(cosmo_parameters=cosmo_parameters, scaling_relation=scaling_relation)
-    cc = cmm.calc_counts(zmin=0.2, zmax=0.35, lambda_min=20, lambda_max=30, survey_area_sq_deg=1000)
+    cc = cmm.calc_counts(zmin=0.2, zmax=0.35, lambda_min=20, lambda_max=30, survey_area_sq_deg=1437)
     print(cc)
 

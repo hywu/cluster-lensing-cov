@@ -91,7 +91,7 @@ class AngularPowerSpectra(object):
         self.ell_kappa = self.ell
         self.C_ell_kappa = C_ell_sum
 
-        n_src_sr = self.su.n_src_arcmin/cn.arcmin_to_radian**2
+        n_src_sr = self.su.n_src_arcmin/cn.arcmin_to_radian**2 # TODO: I should integrate above zh+0.01??
         self.shape_noise = self.su.sigma_gamma**2/n_src_sr
         #print('n_src_sr', n_src_sr)
 
@@ -139,10 +139,12 @@ class AngularPowerSpectra(object):
         self.ell_Sigma = self.ell
         self.C_ell_Sigma = C_ell_sum
 
-        n_src_sr = self.su.n_src_arcmin/cn.arcmin_to_radian**2
+        print('fsrc_behind_zh =', zh, self.lk.fsrc_behind_zh(zh))
+        n_src_sr = self.su.n_src_arcmin * self.lk.fsrc_behind_zh(zh)/cn.arcmin_to_radian**2
         mean_Sigma_crit = self.lk.mean_Sigma_crit(zh=zh)
-        #print('mean_Sigma_crit', mean_Sigma_crit)
+        print('mean_Sigma_crit %g'%mean_Sigma_crit)
         self.shape_noise_for_Sigma = self.su.sigma_gamma**2/n_src_sr * mean_Sigma_crit**2 
+        print('self.shape_noise_for_Sigma', self.shape_noise_for_Sigma)
 
     ###### halo-halo ######
     def calc_C_ell_h(self, zh_min, zh_max, lambda_min, lambda_max):
@@ -155,13 +157,16 @@ class AngularPowerSpectra(object):
         zh_max_list = zh_bins[1:]
 
         # get the halo number density and bias
-        survey_area_sq_deg = 41253./48.# exact value doesn't matter
+        survey_area_sq_deg = 1437.#41253.#/48.# exact value doesn't matter
         cc = ClusterCounts(cosmo_parameters=self.co, scaling_relation=self.sr)
         cc.calc_counts(zmin=zh_min, zmax=zh_max, lambda_min=lambda_min, lambda_max=lambda_max, survey_area_sq_deg=survey_area_sq_deg)
         #n_h_Mpc3 = cc.cluster_number_density
         area_sr = 4.*np.pi*survey_area_sq_deg/41253.
-        print('cc.counts', cc.counts)
+
+        print('lambda', lambda_min, lambda_max, 'cc.counts', cc.counts)
         n_h_sr = cc.counts/area_sr
+        #print('n_h_sr', n_h_sr)
+        #exit()
         b = cc.cluster_mean_bias
         print('bias', b)
         #exit()

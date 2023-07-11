@@ -6,7 +6,7 @@ from scipy.interpolate import interp1d
 from astropy.cosmology import FlatLambdaCDM
 
 import clens.util.constants as cn
-from clens.util.parameters import CosmoParameters#, NuisanceParameters
+from clens.util.parameters import CosmoParameters
 from clens.util.scaling_relation import FiducialScalingRelation, Costanzi21ScalingRelation, Murata18ScalingRelation
 from clens.util.survey import Survey
 
@@ -198,8 +198,8 @@ class CovDeltaSigma(object):
 def demo_cov(plotting=False):
     co = CosmoParameters()
     #sr = FiducialScalingRelation()
-    sr = Costanzi21ScalingRelation()
-    #sr = Murata18ScalingRelation()
+    #sr = Costanzi21ScalingRelation()
+    sr = Murata18ScalingRelation()
     su = Survey(zs_min=0.56, zs_max=0.65, top_hat=True, n_src_arcmin=10, sigma_gamma=0.3)
     fsky = 5000. / 41253.
     cds = CovDeltaSigma(co=co, su=su, sr=sr, fsky=fsky)

@@ -50,6 +50,22 @@ class Costanzi21ScalingRelation(object):
         sigma_sqr = self.Dlam**2 + (lam - 1)/lam**2
         return np.sqrt(sigma_sqr)
 
+class To21ScalingRelation(object):
+    def __init__(self, lnlam0=4.26, A_lnlam=0.943, B_lnlam=0.15, sig_lnlam=0.299):
+        self.lnlam0 = lnlam0
+        self.A_lnlam = A_lnlam
+        self.B_lnlam = B_lnlam
+        self.sig_lnlam = sig_lnlam
+
+    def lnlambda_lnM(self, lnM, z):
+        lnMpivot_Msun = np.log(5e14/0.7) # Note: should this be 3e14? C21 paper
+        return self.lnlam0 + self.A_lnlam * (lnM - lnMpivot_Msun) + self.B_lnlam * np.log((1+z)/1.45)
+
+    def scatter(self, lnM, z):
+        lam = np.exp(self.lnlambda_lnM(lnM, z))
+        sigma_sqr = self.sig_lnlam**2 + (lam - 1)/lam**2
+        return np.sqrt(sigma_sqr)
+
 class Murata18ScalingRelation(object):
     def __init__(self, A_M18=3.207, B_M18=0.993, sigma0_M18=0.456, q_M18=-0.169):
         self.A_M18 = A_M18
@@ -69,10 +85,10 @@ class Murata18ScalingRelation(object):
         sigma[sigma <= 1e-8] = 1e-8  # avoid negative values
         return sigma
 
-def plot_lambda_M(scaling_relation):
+def plot_lambda_M(scaling_relation, label=None):
     lgM_arr = np.arange(13.5,15.1,0.01)
     z = 1
-    plt.plot(10**lgM_arr, np.exp(scaling_relation.lnlambda_lnM(lgM_arr*np.log(10.), z)), label='original')
+    plt.plot(10**lgM_arr, np.exp(scaling_relation.lnlambda_lnM(lgM_arr*np.log(10.), z)), label=label)
     plt.xscale('log')
     plt.yscale('log')
     plt.xlabel(r'$\rm M_{200m}$')

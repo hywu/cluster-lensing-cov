@@ -11,28 +11,6 @@ defaultCosmoParameters = {
 }
 
 
-# defaultNuisanceParameters = {
-#     "lgM0": 14.6258, #log10(3e14/h) # Costanzi 21
-#     "alpha_M": 1,
-#     "lambda0": 70,
-#     "sigma_lambda": 0.18,
-#     "Alam": 72.4, # Costanzi 21
-#     "Blam": 0.935,
-#     "Clam": 0.51,
-#     "Dlam": 0.207
-# }
-
-# defaultNuisanceParametersPiecewise = {
-#     "norm_mid": -21.1415,
-#     "alpha_M0":0.752,
-#     "alpha_M1":0.752,
-#     "alpha_M2":0.752,
-#     "scatter0": 0.5,
-#     "scatter1": 0.5,
-#     "scatter2": 0.5
-# }
-
-
 class CosmoParameters(dict):
     def __init__(self, **pardict):
         super(CosmoParameters, self).__init__(defaultCosmoParameters) # set to default value
@@ -50,14 +28,13 @@ class CosmoParameters(dict):
         return r[:-1]
 
 
-
 class NuisanceParameters(dict):
     def __init__(self, **pardict):
         super(NuisanceParameters, self).__init__(defaultNuisanceParameters) # set to default value
         for k in pardict:
             if k in self:
                 self[k] = pardict[k]
-            
+
 
     def __getattr__(self, attr):
         return self[attr]
@@ -69,14 +46,13 @@ class NuisanceParameters(dict):
         return r[:-1]
 
 
-
 class NuisanceParametersPiecewise(dict):
     def __init__(self, **pardict):
         super(NuisanceParametersPiecewise, self).__init__(defaultNuisanceParametersPiecewise) # set to default value
         for k in pardict:
             if k in self:
                 self[k] = pardict[k]
-            
+
 
     def __getattr__(self, attr):
         return self[attr]
@@ -98,17 +74,7 @@ if __name__ == "__main__":
     print(nu.sigma_lambda)
     print(nu['sigma_lambda'])
 
-    '''
-    nu_para_name_list = ['sigma_lambda', 'lgM0', 'alpha_M']
-    for i in range(3):
-        name = nu_para_name_list[i]
-        print(name, nu[name])
-        #print(name, co[name])
-    '''
+
     co_new = {'sigma8': 0.9, 'lnM0':20} # it's okay to have irrelevant stuff
     co = CosmoParameters(**co_new)
     print(co)
-
-    # for Mobs = Mtrue (1-1 scaling, no scatter)
-    nu = NuisanceParameters(sigma_lambda=1e-5, lgM0=0, alpha_M=1, lambda0=1)
-
