@@ -89,6 +89,10 @@ class LensingKernel(object):
         integrand = ns_list * Sigma_crit_halo
         return np.trapz(integrand, x=zs_list)
 
+    def fsrc_behind_zh(self, zh):
+        zs_list = np.linspace(max(zh+0.01,self.su.zs_min), self.su.zs_max, 100)
+        ns_list = self.su.pz_src(zs_list)
+        return np.trapz(ns_list, x=zs_list)
 
     def distance_sanity(self):
         plt.figure(figsize=(7, 7))

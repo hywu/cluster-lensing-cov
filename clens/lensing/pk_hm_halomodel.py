@@ -6,22 +6,21 @@ from scipy.signal import savgol_filter
 from scipy.interpolate import RectBivariateSpline # 2D interpolation
 
 import clens.util.constants as cn
-from clens.util.parameters import CosmoParameters, NuisanceParameters
+from clens.util.parameters import CosmoParameters
+from clens.util.scaling_relation import FiducialScalingRelation, Costanzi21ScalingRelation, Murata18ScalingRelation
 from clens.lensing.correlation_functions_3d import CorrelationFunctions3D
 from clens.util.survey import Survey
 
-#from zypy.zycosmo import CosmoParams, Density, LinearTheory
+# Ying's code
 from clens.ying.param import CosmoParams
 from clens.ying.lineartheory import LinearTheory
 from clens.ying.density import Density
-from clens.lensing.correlation_functions_3d import CorrelationFunctions3D
-
 
 class PowerSpectrumHaloMatter(object):
-    def __init__(self, co, nu, su, zh):
+    def __init__(self, co, su, sr, zh):
         self.co = co
-        self.nu = nu
         self.su = su
+        self.sr = sr
         self.zh = zh
 
         rho_crit = cn.rho_crit_with_h * co.h**2
@@ -33,13 +32,12 @@ class PowerSpectrumHaloMatter(object):
 
 
         #self.cf3 = CorrelationFunctions3D(z=0.2, co=co, nu=nu)
-        self.cf3 = CorrelationFunctions3D(z=zh, co=co, nu=nu)
+        self.cf3 = CorrelationFunctions3D(z=zh, co=co, sr=sr, lambda_min=20, lambda_max=30)#lambda is irrelavent here
         self.cf3.set_up_halos(zl=zh)
 
         self.cosmo_ying = CosmoParams(omega_M_0=self.co.OmegaM, omega_b_0=self.co.OmegaB, omega_lambda_0=self.co.OmegaDE, h=self.co.h, sigma_8=self.co.sigma8, n=self.co.ns, tau=self.co.tau) # Ying's
         den = Density(cosmo=self.cosmo_ying)
         self.lin = LinearTheory(self.cosmo_ying, z=zh)
-
 
     ## calcualte u(k) based on Cooray+Sheth Eq 81
     def _Ci(self, x, uplim=6., dlnt=0.001):
@@ -82,7 +80,6 @@ class PowerSpectrumHaloMatter(object):
             plt.xscale('log')
         plt.ylabel('Si')
 
-
     def calc_uk(self, M200m, c, plotting=False):
         def _u_k(k):
             Delta = 200.
@@ -110,7 +107,7 @@ class PowerSpectrumHaloMatter(object):
             uk_list[i] = (_u_k(k))
         
         uk_list_smooth = savgol_filter(uk_list, 21, 3)
-        select = [uk_list_smooth > 0]
+        select = (uk_list_smooth > 0)
         self.lnuk_lnk_interp = interp1d(lnk_list_interp[select], np.log(uk_list_smooth[select]))
 
     def calc_uk_M_interp(self, Mmin, Mmax): ## used by tripsectrum
@@ -127,7 +124,6 @@ class PowerSpectrumHaloMatter(object):
             lnuk_M_list[i,:] = self.lnuk_lnk_interp(lnk_list_interp) # calc_uk does it on positive u values, not regular k grid, so I need to re-interpolate to a regular grid
         #print(lnuk_M_list)
         self.ln_uk_lnM_lnk_interp = RectBivariateSpline(lnM_list, lnk_list_interp, lnuk_M_list)
-
 
     def calc_Pk_1h(self, Mmin, Mmax):
         sum_M_uk_dndlnM = np.zeros(self.nk)
@@ -163,9 +159,9 @@ class PowerSpectrumHaloMatter(object):
 
 def demo_uk():
     co = CosmoParameters()
-    nu = NuisanceParameters(sigma_lambda=1e-5, lgM0=0, alpha_M=1, lambda0=1)#1-1,no scatter
     su = Survey()
-    pshm = PowerSpectrumHaloMatter(co=co, nu=nu, su=su, zh=0.5)
+    sr = Murata18ScalingRelation()
+    pshm = PowerSpectrumHaloMatter(co=co, su=su, sr=sr, zh=0.5)
     pshm._check_convergence_Ci()
     pshm._check_convergence_Si()
 
@@ -175,18 +171,17 @@ def demo_uk():
 
 def demo_uk_interp():
     co = CosmoParameters()
-    nu = NuisanceParameters(sigma_lambda=1e-5, lgM0=0, alpha_M=1, lambda0=1)#1-1,no scatter
     su = Survey()
-    pshm = PowerSpectrumHaloMatter(co=co, nu=nu, su=su, zh=0.5)
+    sr = Murata18ScalingRelation()
+    pshm = PowerSpectrumHaloMatter(co=co, su=su, sr=sr, zh=0.5)
     pshm.calc_uk_M_interp(1e+14, 2e+14)
 
 def demo_pk():
     co = CosmoParameters()
-    nu = NuisanceParameters(sigma_lambda=1e-5, lgM0=0, alpha_M=1, lambda0=1)#1-1,no scatter
     su = Survey()
-
-    pshm = PowerSpectrumHaloMatter(co=co, nu=nu, su=su, zh=0.5)
-    pshm.calc_Pk_hm_full(Mmin=1e14, Mmax=1e16)
+    sr = Murata18ScalingRelation()
+    pshm = PowerSpectrumHaloMatter(co=co, su=su, sr=sr, zh=0.5)
+    pshm.calc_Pk_hm_full(Mmin=1e14, Mmax=1e15)
 
     plt.figure()
     plt.loglog(pshm.k_list, pshm.P1h_list)
@@ -196,6 +191,6 @@ def demo_pk():
 
 if __name__ == "__main__":
     #demo_uk()
-    demo_pk()
-    #demo_uk_interp()
+    #demo_pk()
+    demo_uk_interp()
     plt.show()
