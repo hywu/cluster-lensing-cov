@@ -6,6 +6,14 @@ Put this in your `~/.bashrc`
 
 `export PYTHONPATH="/your_folder/cluster-lensing-cov/:$PYTHONPATH"`
 
+or run
+ 
+```
+import sys
+sys.path.append('/your_folder/cluster-lensing-cov/')
+```
+everytime you need to use the package. 
+
 
 ## Contents
 
