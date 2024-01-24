@@ -21,7 +21,7 @@ class DemoCosmoDC2(object):
 
         self.zh_min = zh_min
         self.zh_max = zh_max
-        self.zh_mid = 0.5 * (zh_min + zh_min)
+        self.zh_mid = 0.5 * (zh_min + zh_max)
 
         self.lambda_min = lambda_min
         self.lambda_max = lambda_max
