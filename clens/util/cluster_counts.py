@@ -25,7 +25,7 @@ class ClusterCounts(object):
         fsky = survey_area_sq_deg/41253.
         cosmo = FlatLambdaCDM(H0=self.cp.h*100, Om0=self.cp.OmegaM)
         vol = fsky * 4. * np.pi/3. * (cosmo.comoving_distance(zmax).value**3 - cosmo.comoving_distance(zmin).value**3)
-        print('vol', vol)
+        #print('vol', vol)
 
         z = 0.5*(zmin+zmax)
         # using ying's mass function for now
@@ -49,10 +49,12 @@ class ClusterCounts(object):
 
         lnM_selection_arr = rs.lnM_selection(lnM_arr, z)
         self.cluster_number_density = np.trapz(dndlnM_arr*lnM_selection_arr, x=lnM_arr)
-        print('self.cluster_number_density', self.cluster_number_density)
+        #print('self.cluster_number_density', self.cluster_number_density)
         
         counts = self.cluster_number_density * vol
         self.counts = counts
+        print('counts', counts)
+        
         # sample variance
         bn = np.trapz(bias_arr*dndlnM_arr*lnM_selection_arr, x=lnM_arr) * vol
         _scale = (3./(4.*np.pi) * vol)**(1./3.)
@@ -66,7 +68,10 @@ class ClusterCounts(object):
         mean_bias = bn/counts
         self.cluster_mean_bias = mean_bias
 
-        return counts, sv, mean_bias # #lnM_mean
+        # mean mass
+        lnM_mean = np.trapz(lnM_arr*dndlnM_arr*lnM_selection_arr, x=lnM_arr) / self.cluster_number_density
+
+        return counts, sv, mean_bias, lnM_mean, self.cluster_number_density 
 
 if __name__ == "__main__":
     #cosmo_parameters = CosmoParameters()

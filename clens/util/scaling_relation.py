@@ -35,7 +35,8 @@ class FiducialScalingRelation(object):
         return self.sigma_lambda 
 
 class Costanzi21ScalingRelation(object):
-    def __init__(self, Alam=72.4, Blam=0.935, Clam=0.51, Dlam=0.207):
+    def __init__(self, Alam=76.3, Blam=0.957, Clam=0.48, Dlam=0.217):
+        # Table IV, column 2 (DES-NC+SPT-MOR, BKG)
         self.Alam = Alam
         self.Blam = Blam
         self.Clam = Clam

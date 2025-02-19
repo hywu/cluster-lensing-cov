@@ -5,7 +5,7 @@
 import numpy as np
 
 class Survey(dict):
-    def __init__(self, z_star_src=0.5, m_src=2, beta_src=1.4, sigma_gamma = 0.3, n_src_arcmin=None, top_hat=False, zs_min=None, zs_max=None):
+    def __init__(self, z_star_src=0.5, m_src=2, beta_src=1.4, sigma_gamma = 0.3, n_src_arcmin=10, top_hat=False, zs_min=None, zs_max=None):
         """
         Two choices of source redshift distribution:
         1. whale-shape (default): z_star_src, m_src, beta_src,  parameterization based on Rozo 2011 Eq 14
@@ -13,6 +13,7 @@ class Survey(dict):
         """
 
         self.sigma_gamma = sigma_gamma # shape noise
+        self.n_src_arcmin = n_src_arcmin
         
         self.top_hat = top_hat
         if zs_min == None:
@@ -35,10 +36,10 @@ class Survey(dict):
             self.norm = np.trapz(self._pz_src(zs_list), x=zs_list)
 
 
-        if n_src_arcmin == None:
-            self.n_src_arcmin = 10 
-        else:
-            self.n_src_arcmin = n_src_arcmin
+        # if n_src_arcmin == None:
+        #     self.n_src_arcmin = 10 
+        # else:
+        #     self.n_src_arcmin = n_src_arcmin
 
 
 
