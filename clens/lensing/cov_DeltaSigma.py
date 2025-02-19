@@ -53,7 +53,7 @@ class CovDeltaSigma(object):
         select = (rp >= rp_min)&(rp <= rp_max)
         return rp[select], DeltaSigma[select]
 
-    def _calc_C_ell_integration(self, thmin1, thmax1, thmin2, thmax2, zh_min, zh_max, lambda_min, lambda_max):
+    def _calc_C_ell_integration(self, thmin1, thmax1, thmin2, thmax2, zh_min, zh_max, lambda_min, lambda_max, ith1, ith2):
         ## making the multiple (ell) range wide enough
         thmax = max(thmax1, thmax2)
         thmin = min(thmin1, thmin2)
@@ -72,7 +72,9 @@ class CovDeltaSigma(object):
         C_ell_Sigma_interp = interp1d(self.aps.ell_Sigma, self.aps.C_ell_Sigma)
         
         ## calculating the contribution from halo counts: C_ell_h and shot noise
-        self.aps.calc_C_ell_h(zh_min=zh_min, zh_max=zh_max, lambda_min=lambda_min, lambda_max=lambda_max)
+        ## only needs to be performed once as it is independent of radial bin
+        if ith1 == 0 and ith2 == 0:
+        	self.aps.calc_C_ell_h(zh_min=zh_min, zh_max=zh_max, lambda_min=lambda_min, lambda_max=lambda_max)
         C_ell_h_interp = interp1d(self.aps.ell_h, self.aps.C_ell_h)
         halo = C_ell_h_interp(ell_list) + self.aps.shot_noise
 
@@ -147,7 +149,7 @@ class CovDeltaSigma(object):
         if diag_only==True: ## only calculating the diagonal elements
             for ith1 in range(nth):
                 ith2 = ith1
-                self._calc_C_ell_integration(thmin1=thmin_list[ith1], thmax1=thmax_list[ith1], thmin2=thmin_list[ith2], thmax2=thmax_list[ith2], zh_min=zh_min, zh_max=zh_max, lambda_min=lambda_min, lambda_max=lambda_max)
+                self._calc_C_ell_integration(thmin1=thmin_list[ith1], thmax1=thmax_list[ith1], thmin2=thmin_list[ith2], thmax2=thmax_list[ith2], zh_min=zh_min, zh_max=zh_max, lambda_min=lambda_min, lambda_max=lambda_max, ith1=ith1, ith2=ith2)
                 self.cov_shape_noise[ith1,ith1] = factor*self.shape_noise_integration
                 self.cov_cosmic_shear[ith1,ith1] = factor*self.cosmic_shear_integration
                 #self.cov_halo_intrinsic[ith1,ith1] = factor*self.halo_intrinsic_integration
@@ -155,7 +157,7 @@ class CovDeltaSigma(object):
         if diag_only==False: ## calculating the off-diagonal elements
             for ith1 in range(nth):
                 for ith2 in range(ith1, nth): ## only the upper right corner
-                    self._calc_C_ell_integration(thmin1=thmin_list[ith1], thmax1=thmax_list[ith1], thmin2=thmin_list[ith2], thmax2=thmax_list[ith2], zh_min=zh_min, zh_max=zh_max, lambda_min=lambda_min, lambda_max=lambda_max)
+                    self._calc_C_ell_integration(thmin1=thmin_list[ith1], thmax1=thmax_list[ith1], thmin2=thmin_list[ith2], thmax2=thmax_list[ith2], zh_min=zh_min, zh_max=zh_max, lambda_min=lambda_min, lambda_max=lambda_max, ith1=ith1, ith2=ith2)
                     self.cov_shape_noise[ith1, ith2] = factor*self.shape_noise_integration
                     self.cov_cosmic_shear[ith1, ith2] = factor*self.cosmic_shear_integration
                     #self.cov_halo_intrinsic[ith1, ith2] = factor*self.halo_intrinsic_integration
