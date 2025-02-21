@@ -7,7 +7,7 @@ import matplotlib.font_manager
 try:
     from scipy.integrate import trapz
 except ImportError:
-    from zypy.contrib.trapezoid import trapz
+    from scipy.integrate import trapezoid as trapz
 
 import sys
 
