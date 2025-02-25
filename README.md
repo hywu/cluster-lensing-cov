@@ -7,9 +7,12 @@ This package computes the cluster lensing signal and covariance matrices.  Both 
 `export PYTHONPATH="/your_folder/cluster-lensing-cov/:$PYTHONPATH"` -->
 
 ## Installation
-First run `git clone https://github.com/hywu/cluster-lensing-cov`
+Run `pip install git+https://github.com/hywu/cluster-lensing-cov`
 
-Then run `pip install cluster-lensing-cov/`
+### Development installation
+If you'd like to run modified version of the code or contribute to the repo. Please follow the following steps: 
+Run `git clone https://github.com/hywu/cluster-lensing-cov`
+Then run `pip install -e cluster-lensing-cov`
 
 ## Contents
 
