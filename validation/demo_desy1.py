@@ -139,7 +139,7 @@ if __name__ == "__main__":
             n_rp = 15 
             n_src_arcmin = 6.28
             #n_src_arcmin = 5.59
-            sigma_gamma = 0.3 #0.261
+            sigma_gamma = 0.3 / sqrt(2) #0.261
             survey_area = 1437.  # 1321+116
             fsky = survey_area / 41253.
 
