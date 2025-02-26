@@ -51,9 +51,8 @@ class ClusterCounts(object):
         self.cluster_number_density = np.trapz(dndlnM_arr*lnM_selection_arr, x=lnM_arr)
         #print('self.cluster_number_density', self.cluster_number_density)
         
-        counts = self.cluster_number_density * vol
-        self.counts = counts
-        print('counts', counts)
+        self.counts = self.cluster_number_density * vol
+        print('counts', self.counts)
         
         # sample variance
         bn = np.trapz(bias_arr*dndlnM_arr*lnM_selection_arr, x=lnM_arr) * vol
@@ -65,13 +64,12 @@ class ClusterCounts(object):
         _sigma2_v = (sigma_r_0(_scale) * f_fgrowth(z))**2 
         sv = bn**2 * _sigma2_v
 
-        mean_bias = bn/counts
-        self.cluster_mean_bias = mean_bias
+        self.cluster_mean_bias = bn/self.counts
 
         # mean mass
         lnM_mean = np.trapz(lnM_arr*dndlnM_arr*lnM_selection_arr, x=lnM_arr) / self.cluster_number_density
 
-        return counts, sv, mean_bias, lnM_mean, self.cluster_number_density 
+        return self.counts, sv, self.cluster_mean_bias, lnM_mean, self.cluster_number_density 
 
 if __name__ == "__main__":
     #cosmo_parameters = CosmoParameters()

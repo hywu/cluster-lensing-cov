@@ -2,13 +2,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import os, sys
-
-import sys
-#sys.path.append('/users/hywu/work/cluster_lensing_cov/')
-
 from astropy.cosmology import FlatLambdaCDM
 from clens.util.parameters import CosmoParameters
-from clens.util.scaling_relation import Costanzi21ScalingRelation, To21ScalingRelation
+from clens.util.scaling_relation import Costanzi21ScalingRelation, To21ScalingRelation, PrecalculatedCountsBias
 from clens.util.survey import Survey
 from clens.lensing.cov_DeltaSigma import CovDeltaSigma
 from clens.util.cluster_counts import ClusterCounts
@@ -74,17 +70,38 @@ class DemoDESY1(object):
         np.savetxt(self.cov_combined_fname, cov_combined) ## key results!
 
     def calc_counts(self):
-        cmm = ClusterCounts(cosmo_parameters=co, scaling_relation=self.sr)
-        cc = cmm.calc_counts(zmin=zh_min, zmax=zh_max, lambda_min=lambda_min, lambda_max=lambda_max, survey_area_sq_deg=survey_area)
-        np.savetxt(self.counts_fname, cc, header='counts, sv, bias, mean_mass')
+        try:
+            counts = self.sr.lens_counts
+            bias = self.sr.lens_bias
+            print('use precalculated counts and bias')
+
+        except:
+            cmm = ClusterCounts(cosmo_parameters=co, scaling_relation=self.sr)
+            cc = cmm.calc_counts(zmin=zh_min, zmax=zh_max, lambda_min=lambda_min, lambda_max=lambda_max, survey_area_sq_deg=survey_area)
+            counts = cc.counts 
+            bias = cc.cluster_mean_bias
+
+        np.savetxt(self.counts_fname, [counts, bias], header='counts, sv, bias, mean_mass')
 
 
 if __name__ == "__main__":
     ## ./demo_desy1.py 0.2 0.35 0.75 20 30
     zh_min_list = [0.2, 0.35, 0.5]
     zh_max_list = [0.35, 0.5, 0.65]
-    lambda_min_list = [ 5, 10, 14, 20, 30, 45, 60]
-    lambda_max_list = [10, 14, 20, 30, 45, 60, 1000]
+    #lambda_min_list = [ 5, 10, 14, 20, 30, 45, 60]
+    #lambda_max_list = [10, 14, 20, 30, 45, 60, 1000]
+
+    lambda_min_list = [ 20, 30, 45, 60]
+    lambda_max_list = [ 30, 45, 60, 1000]
+
+
+    counts_list = np.array([[762, 376, 123, 91],
+                            [1549, 672, 187, 148],
+                            [1612, 687, 205, 92]]) # from Y1 paper
+    
+    bias_list = np.array([[2.80019023, 3.67337471, 4.20838351, 5.94689383]
+                          [2.72935697, 3.56092105, 4.36959595, 5.84793938]
+                          [2.54976559, 3.5966532 , 4.39331755, 5.71029621]]) # from Andres
 
     nz = len(zh_min_list)
     nlam = len(lambda_min_list)
@@ -97,16 +114,22 @@ if __name__ == "__main__":
             lambda_min = lambda_min_list[ilam]
             lambda_max = lambda_max_list[ilam]
 
-            #co = CosmoParameters(h=0.715, OmegaDE=0.678, OmegaM=0.322, sigma8=0.790) # Costanzi21 Table 4 column 2 (BKG)
+            counts = counts_list[iz, ilam]
+            bias = bias_list[iz, ilam]
+
+            # Costanzi21 Table 4 column 2 (BKG)
+            #co = CosmoParameters(h=0.715, OmegaDE=0.678, OmegaM=0.322, sigma8=0.790) 
             #sr = Costanzi21ScalingRelation()
             #### TODO: bug: too high counts!
 
-            co = CosmoParameters(h=0.7, OmegaDE=0.724, OmegaM=0.276, sigma8=0.802)# To & Krause 21 6×2pt+N, h is unconstrained
-            sr = To21ScalingRelation()
-
-            #co = CosmoParameters(h=0.7, OmegaDE=0.7, OmegaM=0.3, sigma8=0.8)
+            # To & Krause 21 6×2pt+N, h is unconstrained
+            #co = CosmoParameters(h=0.7, OmegaDE=0.724, OmegaM=0.276, sigma8=0.802)
             #sr = To21ScalingRelation()
-            #sr = Costanzi21ScalingRelation()
+            output_loc='desy1_analytic_To21/'
+
+            co = CosmoParameters(h=0.7, OmegaDE=0.7, OmegaM=0.3, sigma8=0.8)
+            sr = PrecalculatedCountsBias(counts, bias)
+            output_loc='desy1_analytic_counts_bias/'
 
             h = co.h
             zh_mid = 0.5 * (zh_min + zh_max)
@@ -121,10 +144,11 @@ if __name__ == "__main__":
             fsky = survey_area / 41253.
 
             su = Survey(n_src_arcmin=n_src_arcmin, sigma_gamma=sigma_gamma)
-            cp = DemoDESY1(co=co, su=su, sr=sr, zh_min=zh_min, zh_max=zh_max, lambda_min=lambda_min, lambda_max=lambda_max, rp_min_hiMpc=rp_min_hiMpc, rp_max_hiMpc=rp_max_hiMpc, n_rp=n_rp, output_loc='desy1_analytic_To21/') #'desy1_analytic_C21/'
+            cp = DemoDESY1(co=co, su=su, sr=sr, zh_min=zh_min, zh_max=zh_max, lambda_min=lambda_min, lambda_max=lambda_max, rp_min_hiMpc=rp_min_hiMpc, rp_max_hiMpc=rp_max_hiMpc, n_rp=n_rp, output_loc=output_loc)
             if False: #os.path.exists(cp.cov_combined_fname) == True:
                 print('done')
             else:
                 print('doing', cp.cov_combined_fname)
                 cp.calc_cov_full(diag_only=False) # takes some time
                 cp.calc_counts()
+            

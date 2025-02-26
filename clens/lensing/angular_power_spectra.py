@@ -11,7 +11,9 @@ from clens.ying.lineartheory import LinearTheory
 from clens.util import constants as cn
 from clens.util.parameters import CosmoParameters
 from clens.util.survey import Survey
-from clens.util.scaling_relation import RichnessSelection, FiducialScalingRelation, Costanzi21ScalingRelation
+from clens.util.scaling_relation import RichnessSelection, FiducialScalingRelation, \
+    Costanzi21ScalingRelation, PrecalculatedCountsBias
+
 from clens.util.cluster_counts import ClusterCounts
 from clens.lensing.lensing_kernel import LensingKernel
 from clens.lensing.pk_hm_halomodel import PowerSpectrumHaloMatter
@@ -139,12 +141,12 @@ class AngularPowerSpectra(object):
         self.ell_Sigma = self.ell
         self.C_ell_Sigma = C_ell_sum
 
-        print('fsrc_behind_zh =', zh, self.lk.fsrc_behind_zh(zh))
+        #print('fsrc_behind_zh =', zh, self.lk.fsrc_behind_zh(zh))
         n_src_sr = self.su.n_src_arcmin * self.lk.fsrc_behind_zh(zh)/cn.arcmin_to_radian**2
         mean_Sigma_crit = self.lk.mean_Sigma_crit(zh=zh)
-        print('mean_Sigma_crit %g'%mean_Sigma_crit)
+        print('mean_Sigma_crit %g'%(mean_Sigma_crit*1e-12))
         self.shape_noise_for_Sigma = self.su.sigma_gamma**2/n_src_sr * mean_Sigma_crit**2 
-        print('self.shape_noise_for_Sigma', self.shape_noise_for_Sigma)
+        #print('self.shape_noise_for_Sigma %g'%(self.shape_noise_for_Sigma*1e-24))
 
     ###### halo-halo ######
     def calc_C_ell_h(self, zh_min, zh_max, lambda_min, lambda_max):
@@ -158,18 +160,25 @@ class AngularPowerSpectra(object):
 
         # get the halo number density and bias
         survey_area_sq_deg = 1437.#41253.#/48.# exact value doesn't matter
-        cc = ClusterCounts(cosmo_parameters=self.co, scaling_relation=self.sr)
-        cc.calc_counts(zmin=zh_min, zmax=zh_max, lambda_min=lambda_min, lambda_max=lambda_max, survey_area_sq_deg=survey_area_sq_deg)
-        #n_h_Mpc3 = cc.cluster_number_density
         area_sr = 4.*np.pi*survey_area_sq_deg/41253.
 
-        print('lambda', lambda_min, lambda_max, 'cc.counts', cc.counts)
-        n_h_sr = cc.counts/area_sr
-        #print('n_h_sr', n_h_sr)
-        #exit()
-        b = cc.cluster_mean_bias
-        print('bias', b)
-        #exit()
+        try: # are we using PrecalculatedCountsBias() ? 
+            n_h_sr = self.sr.lens_counts/area_sr
+            b = self.sr.lens_bias
+            print('use precalculated counts and bias')
+
+        except: # if not, calculate counts and bias
+            cc = ClusterCounts(cosmo_parameters=self.co, scaling_relation=self.sr)
+            cc.calc_counts(zmin=zh_min, zmax=zh_max, lambda_min=lambda_min, lambda_max=lambda_max, survey_area_sq_deg=survey_area_sq_deg)
+            #n_h_Mpc3 = cc.cluster_number_density
+            
+            print('lambda', lambda_min, lambda_max, 'cc.counts', cc.counts)
+            n_h_sr = cc.counts/area_sr
+            #print('n_h_sr', n_h_sr)
+            #exit()
+            b = cc.cluster_mean_bias
+            print('bias', b)
+            #exit()
         
         C_ell_sum = np.zeros(len(self.ell)) # using direct summation of chi instead of integration
         # get the volume
@@ -287,7 +296,7 @@ class AngularPowerSpectra(object):
 if __name__ == "__main__":
     co = CosmoParameters()
     sr = FiducialScalingRelation()
-    #sr = Costanzi21ScalingRelation()
+    #sr = PrecalculatedCountsBias(lens_counts=1074, lens_bias=2.75)
     su = Survey()
     aps = AngularPowerSpectra(co=co, su=su, sr=sr)
     aps.calc_C_ell_h(zh_min=0.2, zh_max=0.35, lambda_min=20, lambda_max=30)

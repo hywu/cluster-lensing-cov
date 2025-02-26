@@ -7,7 +7,8 @@ from astropy.cosmology import FlatLambdaCDM
 
 import clens.util.constants as cn
 from clens.util.parameters import CosmoParameters
-from clens.util.scaling_relation import FiducialScalingRelation, Costanzi21ScalingRelation, Murata18ScalingRelation
+from clens.util.scaling_relation import RichnessSelection, FiducialScalingRelation, \
+    Costanzi21ScalingRelation, PrecalculatedCountsBias
 from clens.util.survey import Survey
 
 from clens.lensing.angular_power_spectra import AngularPowerSpectra
@@ -108,7 +109,7 @@ class CovDeltaSigma(object):
         self.shape_noise_integration = np.trapz(integrand_shape_noise, x=lnell_list)
         #self.halo_intrinsic_integration = np.trapz(integrand_halo_intrinsic, x=lnell_list) # TODO
 
-    def calc_cov(self, rp_min, rp_max, n_rp, zh_min, zh_max, lambda_min, lambda_max, diag_only=False):
+    def calc_cov(self, rp_min, rp_max, n_rp, zh_min, zh_max, lambda_min=None, lambda_max=None, diag_only=False):
         """ calling self._calc_C_ell_integration, calculating the cov for *multiple bins*
         Args:
             rp_min (float): min projected separation in comoving Mpc (no h)
@@ -201,7 +202,8 @@ def demo_cov(plotting=False):
     co = CosmoParameters()
     #sr = FiducialScalingRelation()
     #sr = Costanzi21ScalingRelation()
-    sr = Murata18ScalingRelation()
+    #sr = Murata18ScalingRelation()
+    sr = PrecalculatedCountsBias(lens_counts=1074, lens_bias=2.75)
     su = Survey(zs_min=0.56, zs_max=0.65, top_hat=True, n_src_arcmin=10, sigma_gamma=0.3)
     fsky = 5000. / 41253.
     cds = CovDeltaSigma(co=co, su=su, sr=sr, fsky=fsky)

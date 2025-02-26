@@ -86,6 +86,13 @@ class Murata18ScalingRelation(object):
         sigma[sigma <= 1e-8] = 1e-8  # avoid negative values
         return sigma
 
+
+class PrecalculatedCountsBias(object):
+    def __init__(self, lens_counts, lens_bias):
+        self.lens_counts = lens_counts
+        self.lens_bias = lens_bias
+
+
 def plot_lambda_M(scaling_relation, label=None):
     lgM_arr = np.arange(13.5,15.1,0.01)
     z = 1

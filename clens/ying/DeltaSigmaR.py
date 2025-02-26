@@ -21,13 +21,13 @@ from .halogrowth import HaloGrowth
 from .halo_matter_correlation import xi_hm
 
 
-""" to project a 3D spherical profile to 2D, in terms of :math:`\\xi_{hm}` (it
+r""" to project a 3D spherical profile to 2D, in terms of :math:`\\xi_{hm}` (it
 could also be 'gm' or 'cm' depending on the application), to the observable
 :math:`\Delta\Sigma(R)`.  """
 
 
 def DeltaSigmaR(r, xi3d, rp_max=10.0, rho=1.0):
-    """ This  function calculates the 2D weaking lensing profile :math:`\Delta\Sigma(R)` by projecting the 3D version :math:`\\xi_{hm}(r)` along line-of-sight:
+    r""" This  function calculates the 2D weaking lensing profile :math:`\Delta\Sigma(R)` by projecting the 3D version :math:`\\xi_{hm}(r)` along line-of-sight:
 
     .. math::
 
@@ -215,13 +215,13 @@ def decomposition_demo(m=1.e14, b=2.0, c=6.0, rcutoff=3):
     fig = plt.figure(figsize=(8, 6))
     fac = 1.e-12/h
     ax = fig.add_subplot(111)
-    ax.plot(rp0*h, delsig0*fac, "k-",  label="$\Delta\Sigma(R)$ from $\\xi_{hm}$")
-#    ax.plot(rp1, delsig11*fac, "r--", label="$\Delta\Sigma(R)$ from $\\xi_{mm}$ and $M_h$" )
-    ax.plot(rp1*h, delsig12*fac, "b-", label="$\Delta\Sigma(R)$ from $\\xi_{mm}$ and $M_h$, corrected" )
+    ax.plot(rp0*h, delsig0*fac, "k-",  label=r"$\Delta\Sigma(R)$ from $\\xi_{hm}$")
+#    ax.plot(rp1, delsig11*fac, "r--", label=r"$\Delta\Sigma(R)$ from $\\xi_{mm}$ and $M_h$" )
+    ax.plot(rp1*h, delsig12*fac, "b-", label=r"$\Delta\Sigma(R)$ from $\\xi_{mm}$ and $M_h$, corrected" )
     ax.plot(rp1*h, delsig1*fac, "g--", label="2h term" )
     ax.plot(rp1*h, fac*mcutoff/(pi*rp1*rp1), "r--", label="1h term" )
     ax.axvline(rcutoff, color="y")
-    ax.text(0.02, 0.5, str(m)+" $M_\odot$")
+    ax.text(0.02, 0.5, str(m)+r" $M_\odot$")
 #    ax.legend(loc=1, ncol=1)
     ax.set_xscale("log")
     ax.set_yscale("log")
@@ -251,17 +251,17 @@ def profile_demo(mh, color="g"):
     profile = xihm_all[0]
     # plot the original 3D profile
     rp, delsig, xirp, xirpmean = DeltaSigmaR(r, profile, rho=rho_mean, rp_max = 30)
-    ax.plot(r,  profile,  ":",  color=color, label="$\\xi_{hm}$")
-    ax.plot(rp, delsig,   "-",  color=color, label="$\Delta\Sigma(R)$" )
-    ax.plot(rp, xirp,     "-.", color=color, label="$w(r_p)$" )
-    ax.plot(rp, xirpmean, "--", color=color, label="$\\bar{w(r_p)}$" )
-    ax.text(0.02, 0.5, str(mh)+" $M_\odot$")
+    ax.plot(r,  profile,  ":",  color=color, label=r"$\\xi_{hm}$")
+    ax.plot(rp, delsig,   "-",  color=color, label=r"$\Delta\Sigma(R)$" )
+    ax.plot(rp, xirp,     "-.", color=color, label=r"$w(r_p)$" )
+    ax.plot(rp, xirpmean, "--", color=color, label=r"$\\bar{w(r_p)}$" )
+    ax.text(0.02, 0.5, str(mh)+r" $M_\odot$")
     ax.legend(loc=1, ncol=2)
     ax.set_xscale("log")
     ax.set_yscale("log")
     ax.set_xlim(1e-2, 99)
     ax.set_ylim(1e-1, 2e5)
-    ax.set_xlabel("$r$ [h$^{-1}$Mpc]")
+    ax.set_xlabel(r"$r$ [h$^{-1}$Mpc]")
     ax.set_ylabel("profile")
     plt.show()
 
@@ -349,31 +349,31 @@ def transition_demo(mass=1.e14):
         ax1.plot(r,  xihm_new,  "-", alpha=1.0)
 
         rp, delsig, xirp, xirpmean = DeltaSigmaR(r, xihm_new, rho=rho_mean, rp_max = 30)
-        ax2.plot(rp, delsig,   "-",  label=str(frac*100.0)+"$\%$")
+        ax2.plot(rp, delsig,   "-",  label=str(frac*100.0)+r"$\%$")
 
         ax3.plot(r, xihm_new/xihm, "-", alpha=1.0)
 
         ax4.plot(rp, delsig/delsig0, "-", alpha=1.0)
 
 
-    ax1.text(0.02, 0.5, str(mass)+" $M_\odot$")
+    ax1.text(0.02, 0.5, str(mass)+r" $M_\odot$")
     ax1.set_xscale("log")
     ax1.set_yscale("log")
     ax1.set_xlim(1e-2, 99)
     ax1.set_ylim(1e-2, 2e5)
-    ax1.set_ylabel("$\\xi_{hm}$")
+    ax1.set_ylabel(r"$\\xi_{hm}$")
     ax2.legend(loc=1, ncol=2, fancybox=True, shadow=True, prop=prop)
     ax2.set_xscale("log")
     ax2.set_yscale("log")
     ax2.set_xlim(1e-2, 99)
     ax2.set_ylim(5e-1, 2e2)
-    ax2.set_ylabel("$\Delta\Sigma(R)$")
+    ax2.set_ylabel(r"$\Delta\Sigma(R)$")
     ax3.set_xscale("log")
     ax3.set_xlim(1e-2, 99)
-    ax3.set_xlabel("$r$ [h$^{-1}$Mpc]")
+    ax3.set_xlabel(r"$r$ [h$^{-1}$Mpc]")
     ax4.set_xscale("log")
     ax4.set_xlim(1e-2, 99)
-    ax4.set_xlabel("$r$ [h$^{-1}$Mpc]")
+    ax4.set_xlabel(r"$r$ [h$^{-1}$Mpc]")
     ax3.set_ylim(0.6, 1.4)
     ax4.set_ylim(0.6, 1.4)
     ax3.grid(True)
