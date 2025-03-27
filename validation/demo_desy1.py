@@ -99,8 +99,8 @@ if __name__ == "__main__":
                             [1549, 672, 187, 148],
                             [1612, 687, 205, 92]]) # from Y1 paper
     
-    bias_list = np.array([[2.80019023, 3.67337471, 4.20838351, 5.94689383]
-                          [2.72935697, 3.56092105, 4.36959595, 5.84793938]
+    bias_list = np.array([[2.80019023, 3.67337471, 4.20838351, 5.94689383],
+                          [2.72935697, 3.56092105, 4.36959595, 5.84793938],
                           [2.54976559, 3.5966532 , 4.39331755, 5.71029621]]) # from Andres
 
     nz = len(zh_min_list)
@@ -115,7 +115,7 @@ if __name__ == "__main__":
             lambda_max = lambda_max_list[ilam]
 
             counts = counts_list[iz, ilam]
-            bias = bias_list[iz, ilam]
+            bias = 0 * bias_list[iz, ilam]
 
             # Costanzi21 Table 4 column 2 (BKG)
             #co = CosmoParameters(h=0.715, OmegaDE=0.678, OmegaM=0.322, sigma8=0.790) 
@@ -125,11 +125,11 @@ if __name__ == "__main__":
             # To & Krause 21 6×2pt+N, h is unconstrained
             #co = CosmoParameters(h=0.7, OmegaDE=0.724, OmegaM=0.276, sigma8=0.802)
             #sr = To21ScalingRelation()
-            output_loc='desy1_analytic_To21/'
+            #output_loc='desy1_analytic_To21/'
 
             co = CosmoParameters(h=0.7, OmegaDE=0.7, OmegaM=0.3, sigma8=0.8)
             sr = PrecalculatedCountsBias(counts, bias)
-            output_loc='desy1_analytic_counts_bias/'
+            output_loc='desy1_analytic_no_bias/'
 
             h = co.h
             zh_mid = 0.5 * (zh_min + zh_max)
@@ -139,16 +139,25 @@ if __name__ == "__main__":
             n_rp = 15 
             n_src_arcmin = 6.28
             #n_src_arcmin = 5.59
-            sigma_gamma = 0.3 / sqrt(2) #0.261
+            sigma_gamma = 0.3 #0.261
             survey_area = 1437.  # 1321+116
             fsky = survey_area / 41253.
 
-            su = Survey(n_src_arcmin=n_src_arcmin, sigma_gamma=sigma_gamma)
+            #if iz == 0:
+            su = Survey(z_star_src=0.74, m_src=1.68, beta_src=2.33,
+            n_src_arcmin=n_src_arcmin, sigma_gamma=sigma_gamma)
+            # if iz == 1:
+            #     su = Survey(z_star_src=0.208, m_src=6.11, beta_src=1.24,
+            #     n_src_arcmin=n_src_arcmin, sigma_gamma=sigma_gamma)
+            # if iz == 2:
+            #     su = Survey(z_star_src=0.273, m_src=6.47, beta_src=1.37,
+            #     n_src_arcmin=n_src_arcmin, sigma_gamma=sigma_gamma)
+
             cp = DemoDESY1(co=co, su=su, sr=sr, zh_min=zh_min, zh_max=zh_max, lambda_min=lambda_min, lambda_max=lambda_max, rp_min_hiMpc=rp_min_hiMpc, rp_max_hiMpc=rp_max_hiMpc, n_rp=n_rp, output_loc=output_loc)
             if False: #os.path.exists(cp.cov_combined_fname) == True:
                 print('done')
             else:
                 print('doing', cp.cov_combined_fname)
-                cp.calc_cov_full(diag_only=False) # takes some time
+                cp.calc_cov_full(diag_only=True) # takes some time
                 cp.calc_counts()
             
