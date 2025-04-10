@@ -76,32 +76,30 @@ class DemoDESY1(object):
             print('use precalculated counts and bias')
 
         except:
-            cmm = ClusterCounts(cosmo_parameters=co, scaling_relation=self.sr)
-            cc = cmm.calc_counts(zmin=zh_min, zmax=zh_max, lambda_min=lambda_min, lambda_max=lambda_max, survey_area_sq_deg=survey_area)
-            counts = cc.counts 
-            bias = cc.cluster_mean_bias
+            cc = ClusterCounts(cosmo_parameters=co, scaling_relation=self.sr)
+            cc.calc_counts(zmin=zh_min, zmax=zh_max, lambda_min=lambda_min, lambda_max=lambda_max, survey_area_sq_deg=survey_area)
 
-        np.savetxt(self.counts_fname, [counts, bias], header='counts, sv, bias, mean_mass')
+        np.savetxt(self.counts_fname, [cc.counts, cc.sv, cc.cluster_mean_bias, cc.lnM_mean], header='counts, sv, bias, lnM_mean')
 
 
 if __name__ == "__main__":
     ## ./demo_desy1.py 0.2 0.35 0.75 20 30
     zh_min_list = [0.2, 0.35, 0.5]
     zh_max_list = [0.35, 0.5, 0.65]
-    #lambda_min_list = [ 5, 10, 14, 20, 30, 45, 60]
-    #lambda_max_list = [10, 14, 20, 30, 45, 60, 1000]
+    lambda_min_list = [ 5, 10, 14, 20, 30, 45, 60]
+    lambda_max_list = [10, 14, 20, 30, 45, 60, 1000]
 
-    lambda_min_list = [ 20, 30, 45, 60]
-    lambda_max_list = [ 30, 45, 60, 1000]
+    #lambda_min_list = [ 20, 30, 45, 60]
+    #lambda_max_list = [ 30, 45, 60, 1000]
 
 
-    counts_list = np.array([[762, 376, 123, 91],
-                            [1549, 672, 187, 148],
-                            [1612, 687, 205, 92]]) # from Y1 paper
+    counts_list = np.array([[10636, 2089, 1375,  762, 376, 123,  91],
+                            [18331, 4135, 2612, 1549, 672, 187, 148],
+                            [22991, 4974, 2927, 1612, 687, 205,  92]]) # from McClintock Fig 4
     
-    bias_list = np.array([[2.80019023, 3.67337471, 4.20838351, 5.94689383],
-                          [2.72935697, 3.56092105, 4.36959595, 5.84793938],
-                          [2.54976559, 3.5966532 , 4.39331755, 5.71029621]]) # from Andres
+    bias_list = np.array([[2, 2, 2, 2.80019023, 3.67337471, 4.20838351, 5.94689383],
+                          [2, 2, 2, 2.72935697, 3.56092105, 4.36959595, 5.84793938],
+                          [2, 2, 2, 2.54976559, 3.5966532 , 4.39331755, 5.71029621]]) # from Andres  # TODO: need bias for the low-richness bins.
 
     nz = len(zh_min_list)
     nlam = len(lambda_min_list)
@@ -143,15 +141,12 @@ if __name__ == "__main__":
             survey_area = 1437.  # 1321+116
             fsky = survey_area / 41253.
 
-            #if iz == 0:
-            su = Survey(z_star_src=0.74, m_src=1.68, beta_src=2.33,
-            n_src_arcmin=n_src_arcmin, sigma_gamma=sigma_gamma)
-            # if iz == 1:
-            #     su = Survey(z_star_src=0.208, m_src=6.11, beta_src=1.24,
-            #     n_src_arcmin=n_src_arcmin, sigma_gamma=sigma_gamma)
-            # if iz == 2:
-            #     su = Survey(z_star_src=0.273, m_src=6.47, beta_src=1.37,
-            #     n_src_arcmin=n_src_arcmin, sigma_gamma=sigma_gamma)
+            if iz == 0:
+                su = Survey(z_star_src=0.74, m_src=1.68, beta_src=2.33, n_src_arcmin=n_src_arcmin, sigma_gamma=sigma_gamma)
+            if iz == 1:
+                su = Survey(z_star_src=0.208, m_src=6.11, beta_src=1.24, n_src_arcmin=n_src_arcmin, sigma_gamma=sigma_gamma)
+            if iz == 2:
+                su = Survey(z_star_src=0.273, m_src=6.47, beta_src=1.37, n_src_arcmin=n_src_arcmin, sigma_gamma=sigma_gamma)
 
             cp = DemoDESY1(co=co, su=su, sr=sr, zh_min=zh_min, zh_max=zh_max, lambda_min=lambda_min, lambda_max=lambda_max, rp_min_hiMpc=rp_min_hiMpc, rp_max_hiMpc=rp_max_hiMpc, n_rp=n_rp, output_loc=output_loc)
             if False: #os.path.exists(cp.cov_combined_fname) == True:

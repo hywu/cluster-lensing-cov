@@ -62,14 +62,14 @@ class ClusterCounts(object):
         # spherical mass variance as a function of scale.
         sigma_r_0 = lin_0.sigma_r_0_interp()
         _sigma2_v = (sigma_r_0(_scale) * f_fgrowth(z))**2 
-        sv = bn**2 * _sigma2_v
+        self.sv = bn**2 * _sigma2_v
 
         self.cluster_mean_bias = bn/self.counts
 
         # mean mass
-        lnM_mean = np.trapz(lnM_arr*dndlnM_arr*lnM_selection_arr, x=lnM_arr) / self.cluster_number_density
+        self.lnM_mean = np.trapz(lnM_arr*dndlnM_arr*lnM_selection_arr, x=lnM_arr) / self.cluster_number_density
 
-        return self.counts, sv, self.cluster_mean_bias, lnM_mean, self.cluster_number_density 
+        return self.counts, self.sv, self.cluster_mean_bias, self.lnM_mean, self.cluster_number_density 
 
 if __name__ == "__main__":
     #cosmo_parameters = CosmoParameters()
