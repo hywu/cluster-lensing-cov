@@ -59,6 +59,11 @@ class DemoDESY1(object):
         self.cov_combined_fname = self.output_loc+f'DeltaSigma_cov_combined_{bin_name}.dat' ## key results!
         self.counts_fname = self.output_loc+f'counts_{bin_name}.dat'
 
+        # new! save phys_noh
+        self.rp_fname_phys_noh = self.output_loc + f'rp_phys_noh_{bin_name}.dat'
+        self.cov_combined_fname_phys_noh = self.output_loc+f'DeltaSigma_cov_combined_phys_noh_{bin_name}.dat'
+
+
     def calc_cov_full(self, diag_only):
         cds = CovDeltaSigma(co=self.co, su=self.su, sr=self.sr, fsky=fsky)
         output = cds.calc_cov(lambda_min=self.lambda_min, lambda_max=self.lambda_max, zh_min=self.zh_min, zh_max=self.zh_max, rp_min=self.rp_min, rp_max=self.rp_max, n_rp=self.n_rp, diag_only=diag_only)
@@ -68,6 +73,14 @@ class DemoDESY1(object):
         np.savetxt(self.cov_shape_noise_fname, cov_shape_noise/self.co.h**2)
         cov_combined = cov_cosmic_shear/self.co.h**2 + cov_shape_noise/self.co.h**2
         np.savetxt(self.cov_combined_fname, cov_combined) ## key results!
+
+        # new! save phys_noh
+        scale_factor = 1/(1+self.zh_mid)
+
+        cov_combined = (cov_cosmic_shear + cov_shape_noise) / scale_factor**4
+        np.savetxt(self.cov_combined_fname_phys_noh, cov_combined)
+        np.savetxt(self.rp_fname_phys_noh, rp_mid * scale_factor)
+
 
     def calc_counts(self):
         try:
@@ -79,7 +92,7 @@ class DemoDESY1(object):
             cc = ClusterCounts(cosmo_parameters=co, scaling_relation=self.sr)
             cc.calc_counts(zmin=zh_min, zmax=zh_max, lambda_min=lambda_min, lambda_max=lambda_max, survey_area_sq_deg=survey_area)
 
-        np.savetxt(self.counts_fname, [cc.counts, cc.sv, cc.cluster_mean_bias, cc.lnM_mean], header='counts, sv, bias, lnM_mean')
+            np.savetxt(self.counts_fname, [cc.counts, cc.sv, cc.cluster_mean_bias, cc.lnM_mean], header='counts, sv, bias, lnM_mean')
 
 
 if __name__ == "__main__":
