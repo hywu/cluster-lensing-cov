@@ -51,7 +51,7 @@ class AngularPowerSpectra(object):
 
     ###### matter-matter ######
     def calc_C_ell_kappa(self, zl_min, zl_max):
-        print('calculating C_ell_kappa')
+        #print('calculating C_ell_kappa')
         # edge of the z bins, 20 bins per dz=1
         nzl = max(int(20*(zl_max-zl_min)), 1)# at least one redshift slice
         #print('z range', zl_min, zl_max, 'nz', nzl)
@@ -99,7 +99,7 @@ class AngularPowerSpectra(object):
 
 
     def calc_C_ell_Sigma(self, zl_min, zl_max, zh):# basically kappa * Sigma_crit
-        print('calculating C_ell_Sigma')
+        #print('calculating C_ell_Sigma')
         self.lk.calc_kernel_Sigma(zh)
         # edge of the z bins, 20 bins per dz=1
         nzl = max(int((zl_max-zl_min)/0.1), 1)# at least one redshift slice
@@ -144,16 +144,16 @@ class AngularPowerSpectra(object):
         #print('fsrc_behind_zh =', zh, self.lk.fsrc_behind_zh(zh))
         n_src_sr = self.su.n_src_arcmin * self.lk.fsrc_behind_zh(zh)/cn.arcmin_to_radian**2
         mean_Sigma_crit = self.lk.mean_Sigma_crit(zh=zh)
-        print('mean_Sigma_crit %g'%(mean_Sigma_crit*1e-12))
+        #print('mean_Sigma_crit %g'%(mean_Sigma_crit*1e-12))
         self.shape_noise_for_Sigma = self.su.sigma_gamma**2/n_src_sr * mean_Sigma_crit**2 
         #print('self.shape_noise_for_Sigma %g'%(self.shape_noise_for_Sigma*1e-24))
 
     ###### halo-halo ######
     def calc_C_ell_h(self, zh_min, zh_max, lambda_min, lambda_max):
-        print('calculating C_ell_h')
+        #print('calculating C_ell_h')
         # edge of the z bins, 20 bins per dz=1
         nzh = max(int((zh_max-zh_min)/0.1),1) # at least one redshift slice...
-        print('nzh', nzh)
+        #print('nzh', nzh)
         zh_bins = np.linspace(zh_min, zh_max, nzh+1)
         zh_min_list = zh_bins[:-1]
         zh_max_list = zh_bins[1:]
@@ -165,19 +165,19 @@ class AngularPowerSpectra(object):
         try: # are we using PrecalculatedCountsBias() ? 
             n_h_sr = self.sr.lens_counts/area_sr
             b = self.sr.lens_bias
-            print('use precalculated counts and bias')
+            #print('use precalculated counts and bias')
 
         except: # if not, calculate counts and bias
             cc = ClusterCounts(cosmo_parameters=self.co, scaling_relation=self.sr)
             cc.calc_counts(zmin=zh_min, zmax=zh_max, lambda_min=lambda_min, lambda_max=lambda_max, survey_area_sq_deg=survey_area_sq_deg)
             #n_h_Mpc3 = cc.cluster_number_density
             
-            print('lambda', lambda_min, lambda_max, 'cc.counts', cc.counts)
+            #print('lambda', lambda_min, lambda_max, 'cc.counts', cc.counts)
             n_h_sr = cc.counts/area_sr
             #print('n_h_sr', n_h_sr)
             #exit()
             b = cc.cluster_mean_bias
-            print('bias', b)
+            #print('bias', b)
             #exit()
         
         C_ell_sum = np.zeros(len(self.ell)) # using direct summation of chi instead of integration
