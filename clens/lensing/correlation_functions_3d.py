@@ -13,7 +13,7 @@ from clens.ying.nfw import NFW
 from clens.ying.halostat import HaloStat
 
 import clens.util.constants as cn
-from clens.util.parameters import CosmoParameters, NuisanceParameters
+from clens.util.parameters import CosmoParameters #, NuisanceParameters
 from clens.util.scaling_relation import RichnessSelection, FiducialScalingRelation, Costanzi21ScalingRelation
 
 

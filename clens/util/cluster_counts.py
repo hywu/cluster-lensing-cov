@@ -52,7 +52,7 @@ class ClusterCounts(object):
         #print('self.cluster_number_density', self.cluster_number_density)
         
         self.counts = self.cluster_number_density * vol
-        print('counts', self.counts)
+        print('counts', self.counts, f'for {lambda_min}, {lambda_max}, {survey_area_sq_deg}')
         
         # sample variance
         bn = np.trapz(bias_arr*dndlnM_arr*lnM_selection_arr, x=lnM_arr) * vol

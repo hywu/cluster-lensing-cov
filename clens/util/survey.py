@@ -3,6 +3,7 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 class Survey(dict):
+    #def __init__(self, z_star_src=None, m_sr=None, beta_src=None, sigma_gamma=None, n_src_arcmin=None, top_hat=False, zs_min=None, zs_max=None, interp=False, z_interp=False, dndz_interp=False):
     def __init__(self, z_star_src=0.5, m_src=2, beta_src=1.4, sigma_gamma = 0.3, n_src_arcmin=10, top_hat=False, zs_min=None, zs_max=None, interp=False, z_interp=False, dndz_interp=False):
         """
         Two choices of source redshift distribution:
@@ -38,6 +39,7 @@ class Survey(dict):
 
         if self.interp == True:
             self.dndz_interp = interp1d(z_interp, dndz_interp)
+            self.zs_max = max(z_interp)
 
     def _pz_src(self, zs):
         return zs**self.m_src * np.exp(-(zs/self.z_star_src)**self.beta_src)

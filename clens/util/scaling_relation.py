@@ -51,6 +51,23 @@ class Costanzi21ScalingRelation(object):
         sigma_sqr = self.Dlam**2 + (lam - 1)/lam**2
         return np.sqrt(sigma_sqr)
 
+class To23ScalingRelation(object):
+    def __init__(self, lnlam0=3.87, A_lnlam=0.903, B_lnlam=0.163, sig_lnlam=0.238): # CL+3x2pt
+        self.lnlam0 = lnlam0
+        self.A_lnlam = A_lnlam
+        self.B_lnlam = B_lnlam
+        self.sig_lnlam = sig_lnlam
+
+    def lnlambda_lnM(self, lnM, z):
+        lnMpivot_Msun = np.log(5e14/0.7) # Note: should this be 3e14? 
+        return self.lnlam0 + self.A_lnlam * (lnM - lnMpivot_Msun) + self.B_lnlam * np.log((1+z)/1.45)
+
+    def scatter(self, lnM, z):
+        lam = np.exp(self.lnlambda_lnM(lnM, z))
+        sigma_sqr = self.sig_lnlam**2 + (lam - 1)/lam**2
+        return np.sqrt(sigma_sqr)
+
+
 class To21ScalingRelation(object):
     def __init__(self, lnlam0=4.26, A_lnlam=0.943, B_lnlam=0.15, sig_lnlam=0.299):
         self.lnlam0 = lnlam0

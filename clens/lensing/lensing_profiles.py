@@ -11,14 +11,15 @@ import clens.util.constants as cn
 from clens.util.parameters import CosmoParameters, NuisanceParameters
 from clens.util.survey import Survey
 from clens.lensing.correlation_functions_3d import CorrelationFunctions3D
-
+from clens.util.scaling_relation import FiducialScalingRelation
 from clens.ying.DeltaSigmaR import DeltaSigmaR, xi_rp
 
 class LensingProfiles(object):
-    def __init__(self, co, nu, su, zh_min, zh_max, lambda_min, lambda_max):
+    def __init__(self, co, su, sr, zh_min, zh_max, lambda_min, lambda_max):
         self.co = co
-        self.nu = nu
+        #self.nu = nu
         self.su = su
+        self.sr = sr
 
         self.zh_min = zh_min
         self.zh_max = zh_max
@@ -34,7 +35,7 @@ class LensingProfiles(object):
         rho_crit = cn.rho_crit_with_h * self.co.h**2  # h-free
         self.rho_mean = rho_crit * self.co.OmegaM # / (1+zh)**3
 
-        self.cf3d = CorrelationFunctions3D(z=zh, co=self.co, nu=self.nu, lambda_min=self.lambda_min, lambda_max=self.lambda_max)
+        self.cf3d = CorrelationFunctions3D(z=zh, co=self.co, sr=self.sr, lambda_min=self.lambda_min, lambda_max=self.lambda_max)
         r = self.cf3d.radius
         xi_cm = self.cf3d.xi_cm()
         rp, DeltaSigma, xi, ximean = DeltaSigmaR(r, xi_cm, rp_max=150, rho=self.rho_mean) # Ying's code
@@ -87,10 +88,10 @@ class LensingProfiles(object):
 
 
 if __name__ == "__main__":
-    co = CosmoParameters()#OmegaM=0.286, sigma8=0.82, h=0.7, OmegaDE=0.714)
-    nu = NuisanceParameters()#sigma_lambda=1e-5, lgM0=0, alpha_M=1, lambda0=1)#1-1,no scatter
+    co = CosmoParameters(OmegaM=0.3, sigma8=0.82, h=0.7, OmegaDE=0.7)
     su = Survey(zs_min=0.508, zs_max=0.574)
-    lp = LensingProfiles(co=co, nu=nu, su=su, zh_min=0.2, zh_max=0.35, lambda_min=20, lambda_max=30)
+    sr = FiducialScalingRelation(lgM0=0, alpha_M=1, lambda0=1, sigma_lambda=1e-3)
+    lp = LensingProfiles(co=co, su=su, sr=sr, zh_min=0., zh_max=0.1, lambda_min=1e14, lambda_max=1.1e14)
     rp, DeltaSigma = lp.calc_DeltaSigma()
     plt.plot(rp, DeltaSigma)
     #theta, gammat = lp.calc_gammmat()
