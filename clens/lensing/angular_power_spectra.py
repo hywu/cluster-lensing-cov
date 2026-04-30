@@ -43,7 +43,7 @@ class AngularPowerSpectra(object):
         #print('aps n_src_arcmin', self.su.n_src_arcmin)
         #print('aps sigma_gamma', self.su.sigma_gamma)
 
-        self.ln_ell = np.linspace(np.log(1e-1), np.log(1e7), 8000) 
+        self.ln_ell = np.linspace(np.log(1e-1), np.log(2e7), 8000) 
         ## 1000 bins per decade. 
         ## ell_max=1e7 sufficient for rp=0.03 at zh=1.4
         self.ell = np.exp(self.ln_ell)
