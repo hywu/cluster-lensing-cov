@@ -4,11 +4,12 @@ import matplotlib.pyplot as plt
 
 from scipy.special import erfc
 from scipy.interpolate import interp1d
-from astropy.cosmology import FlatLambdaCDM
+#from astropy.cosmology import FlatLambdaCDM
+from astropy.cosmology import w0waCDM
 
-from clens.ying.param import CosmoParams
+from clens.ying.param_w0wa import CosmoParams
 from clens.ying.lineartheory import LinearTheory
-from clens.ying.density import Density
+from clens.ying.density_w0wa import Density
 from clens.ying.halostat import HaloStat
 
 from clens.util import constants as cn
@@ -23,13 +24,15 @@ class ClusterCounts(object):
 
     def calc_counts(self, zmin, zmax, lambda_min, lambda_max, survey_area_sq_deg):
         fsky = survey_area_sq_deg/41253.
-        cosmo = FlatLambdaCDM(H0=self.cp.h*100, Om0=self.cp.OmegaM)
+        #cosmo = FlatLambdaCDM(H0=self.cp.h*100, Om0=self.cp.OmegaM)
+        cosmo = w0waCDM(H0=self.cp.h*100, Om0=self.cp.OmegaM, Ode0=self.cp.OmegaDE,
+            w0=self.cp.w0, wa=self.cp.wa)
         vol = fsky * 4. * np.pi/3. * (cosmo.comoving_distance(zmax).value**3 - cosmo.comoving_distance(zmin).value**3)
-        #print('vol', vol)
+        print('vol', vol*1e-9)
 
         z = 0.5*(zmin+zmax)
         # using ying's mass function for now
-        self.cosmo = CosmoParams(omega_M_0=self.cp.OmegaM, omega_b_0=self.cp.OmegaB, omega_lambda_0=self.cp.OmegaDE, h=self.cp.h, sigma_8=self.cp.sigma8, n=self.cp.ns, tau=self.cp.tau)
+        self.cosmo = CosmoParams(omega_M_0=self.cp.OmegaM, omega_b_0=self.cp.OmegaB, omega_lambda_0=self.cp.OmegaDE, h=self.cp.h, sigma_8=self.cp.sigma8, n=self.cp.ns, tau=self.cp.tau, w0=self.cp.w0, wa=self.cp.wa)
         DELTA_HALO = 200.0
 
         # mass function
@@ -73,7 +76,7 @@ class ClusterCounts(object):
 
 if __name__ == "__main__":
     #cosmo_parameters = CosmoParameters()
-    cosmo_parameters = CosmoParameters(h=0.7, OmegaDE=0.724, OmegaM=0.276, sigma8=0.802)
+    cosmo_parameters = CosmoParameters(h=0.7, OmegaDE=0.724, OmegaM=0.276, sigma8=0.802, w0=-0.8, wa=0.2)
     #scaling_relation = FiducialScalingRelation()
     #scaling_relation = Costanzi21ScalingRelation()
     scaling_relation = To21ScalingRelation()

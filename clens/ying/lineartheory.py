@@ -22,8 +22,8 @@ from scipy.interpolate import InterpolatedUnivariateSpline as spline1d
 
 #from math import log, log10, sqrt, exp
 #---------------------------------------------------------------------
-from .param import CosmoParams
-from .density import Density
+from .param_w0wa import CosmoParams
+from .density_w0wa import Density
 from . import constants as cc
 from . import cex
 #---------------------------------------------------------------------

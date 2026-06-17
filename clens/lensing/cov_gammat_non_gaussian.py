@@ -2,7 +2,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
-from astropy.cosmology import FlatLambdaCDM
+#from astropy.cosmology import FlatLambdaCDM
 from scipy.interpolate import RectBivariateSpline # 2D interpolation
 
 from clens.ying.param import CosmoParams
@@ -31,7 +31,9 @@ class CovgammatNonGaussian(object):
         rho_crit = cn.rho_crit_with_h * co.h**2
         self.rho_mean = rho_crit * self.co.OmegaM # comoving!
 
-        astropy_dist = FlatLambdaCDM(H0=self.co.h*100, Om0=self.co.OmegaM)
+        #astropy_dist = FlatLambdaCDM(H0=self.co.h*100, Om0=self.co.OmegaM)
+        astropy_dist = w0waCDM(H0=self.cp.h*100, Om0=self.cp.OmegaM, Ode0=self.cp.OmegaDE,
+            w0=self.cp.w0, wa=self.cp.wa)
         self.chi = astropy_dist.comoving_distance
         self.lk = LensingKernel(co=self.co, su=self.su)
         self.ln_ell = np.linspace(np.log(1), np.log(1e+5), 500) 

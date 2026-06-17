@@ -10,9 +10,9 @@ from math import log, log10, exp, sqrt
 import scipy.integrate as si
 
 from .param import CosmoParams
-from .density import Density
+from .density_w0wa import Density
 from .lineartheory import LinearTheory
-from .frw import FRW
+from .frw_w0wa import FRW
 from . import cex
 from . import constants as cc
 

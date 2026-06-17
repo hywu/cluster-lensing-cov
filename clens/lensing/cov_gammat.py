@@ -3,7 +3,7 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
-from astropy.cosmology import FlatLambdaCDM
+#from astropy.cosmology import FlatLambdaCDM
 
 import clens.util.constants as cn
 from clens.util.parameters import CosmoParameters

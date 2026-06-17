@@ -7,7 +7,9 @@ defaultCosmoParameters = {
     "sigma8":0.806,
     "OmegaB":0.045,
     "ns":0.963,
-    "tau":0.088
+    "tau":0.088,
+    "w0": -1,
+    "wa": 0
 }
 
 

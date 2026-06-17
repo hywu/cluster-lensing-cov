@@ -52,16 +52,21 @@ class Costanzi21ScalingRelation(object):
         return np.sqrt(sigma_sqr)
 
 class To25ScalingRelation(object):
-    def __init__(self, lnlam0=3.87, A_lnlam=0.903, B_lnlam=0.163, sig_lnlam=0.238): # CL+3x2pt, 
+    def __init__(self, lnlam0=3.874, A_lnlam=0.903, B_lnlam=0.163, sig_lnlam=0.238, Mpivot=5e14/0.67): # CL+3x2pt, 
         # fomulae from 2503.13631 Eq 19
         # parameters from 2503.13632, Table 4
         self.lnlam0 = lnlam0
         self.A_lnlam = A_lnlam
         self.B_lnlam = B_lnlam
         self.sig_lnlam = sig_lnlam
+        self.Mpivot = Mpivot
 
     def lnlambda_lnM(self, lnM, z):
-        lnMpivot_Msun = np.log(5e14/0.7) # Note: should this be 3e14?? not written in To25 
+        # Mpivot = 4e14/0.7 matches
+        lnMpivot_Msun = np.log(self.Mpivot) # # Note: should this be 3e14?? or 5e14? not written in To25 
+        # using 3e14/0.7 leads to too high counts
+        # using 5e14/0.7 leads to too low counts
+        # using 5e14 instead of 5e14/0.7 agrees better with Y3 counts?  
         return self.lnlam0 + self.A_lnlam * (lnM - lnMpivot_Msun) + self.B_lnlam * np.log((1+z)/1.45)
 
     def scatter(self, lnM, z):

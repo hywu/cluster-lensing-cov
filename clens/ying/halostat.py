@@ -8,8 +8,8 @@ import numpy as np
 from scipy.interpolate import InterpolatedUnivariateSpline as spline1d
 from math import log, log10, pi, exp
 
-from .param import CosmoParams
-from .density import Density
+from .param_w0wa import CosmoParams
+from .density_w0wa import Density
 from .lineartheory import LinearTheory
 from . import cex
 

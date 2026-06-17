@@ -2,7 +2,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
-from astropy.cosmology import FlatLambdaCDM
+#from astropy.cosmology import FlatLambdaCDM
+from astropy.cosmology import w0waCDM
 
 
 "output in Msun/Mpc^2 to avoid confusion!!!!!"
@@ -27,7 +28,9 @@ class LensingProfiles(object):
         self.lambda_max = lambda_max
 
         # astropy
-        astropy_dist = FlatLambdaCDM(H0=self.co.h*100, Om0=self.co.OmegaM)
+        #astropy_dist = FlatLambdaCDM(H0=self.co.h*100, Om0=self.co.OmegaM)
+        astropy_dist = w0waCDM(H0=self.cp.h*100, Om0=self.cp.OmegaM, Ode0=self.cp.OmegaDE,
+            w0=self.cp.w0, wa=self.cp.wa)
         self.chi = astropy_dist.comoving_distance
 
     def calc_DeltaSigma(self):

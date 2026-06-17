@@ -2,9 +2,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
-from astropy.cosmology import FlatLambdaCDM
+#from astropy.cosmology import FlatLambdaCDM
+from astropy.cosmology import w0waCDM
 
-from clens.ying.param import CosmoParams
+from clens.ying.param_w0wa import CosmoParams
 from clens.ying.lineartheory import LinearTheory
 #from zypy.zycosmo.halofit import HALOFIT # doesn't work yet
 
@@ -34,7 +35,9 @@ class AngularPowerSpectra(object):
         self.rho_mean = rho_crit * self.co.OmegaM # comoving!
 
         # astropy
-        astropy_dist = FlatLambdaCDM(H0=self.co.h*100, Om0=self.co.OmegaM)
+        #astropy_dist = FlatLambdaCDM(H0=self.co.h*100, Om0=self.co.OmegaM)
+        astropy_dist = w0waCDM(H0=self.co.h*100, Om0=self.co.OmegaM, Ode0=self.co.OmegaDE,
+            w0=self.co.w0, wa=self.co.wa)
         self.chi = astropy_dist.comoving_distance
 
         self.cosmo_ying = CosmoParams(omega_M_0=self.co.OmegaM, omega_b_0=self.co.OmegaB, omega_lambda_0=self.co.OmegaDE, h=self.co.h, sigma_8=self.co.sigma8, n=self.co.ns, tau=self.co.tau) # Ying's

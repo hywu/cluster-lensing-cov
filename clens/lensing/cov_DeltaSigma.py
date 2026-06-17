@@ -3,7 +3,8 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
-from astropy.cosmology import FlatLambdaCDM
+#from astropy.cosmology import FlatLambdaCDM
+from astropy.cosmology import w0waCDM
 
 import clens.util.constants as cn
 from clens.util.parameters import CosmoParameters
@@ -45,7 +46,9 @@ class CovDeltaSigma(object):
 
         self.aps = AngularPowerSpectra(co=self.co, su=self.su, sr=self.sr)
         self.bf = BesselForCovTheta()
-        astropy_dist = FlatLambdaCDM(H0=self.co.h*100, Om0=self.co.OmegaM)
+        #astropy_dist = FlatLambdaCDM(H0=self.co.h*100, Om0=self.co.OmegaM)
+        astropy_dist = w0waCDM(H0=self.co.h*100, Om0=self.co.OmegaM, Ode0=self.co.OmegaDE,
+            w0=self.co.w0, wa=self.co.wa)
         self.chi = astropy_dist.comoving_distance
 
     def calc_mean(self, lambda_min, lambda_max, zh_min, zh_max, rp_min=0.1, rp_max=100):
