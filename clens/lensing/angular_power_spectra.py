@@ -206,6 +206,49 @@ class AngularPowerSpectra(object):
         self.C_ell_h = C_ell_sum
         self.shot_noise = 1./n_h_sr
 
+    ###### halo-matter cross (linear bias) ######
+    def calc_C_ell_h_Sigma(self, zh_min, zh_max, lambda_min=None, lambda_max=None):
+        """halo-Sigma cross angular power spectrum at LINEAR BIAS: P_hm = b * P_mm.
+        Consistent with calc_C_ell_h (b^2 P_mm) and calc_C_ell_Sigma (rho_mean^2 * kernel_Sigma^2).
+        Feeds the (C_ell^hSigma)^2 term of the Gaussian DeltaSigma covariance (Wu et al. (2019), eq. 22).
+        The cross correlates only over the (thin) halo redshift slab, so it is
+        automatically suppressed relative to sqrt(C_ell^hh C_ell^SigmaSigma)."""
+        self.lk.calc_kernel_Sigma(0.5*(zh_min+zh_max))
+
+        # halo bias: same source as calc_C_ell_h
+        try: # are we using PrecalculatedCountsBias() ?
+            b = self.sr.lens_bias
+        except:
+            survey_area_sq_deg = 1437.
+            cc = ClusterCounts(cosmo_parameters=self.co, scaling_relation=self.sr)
+            cc.calc_counts(zmin=zh_min, zmax=zh_max, lambda_min=lambda_min, lambda_max=lambda_max, survey_area_sq_deg=survey_area_sq_deg)
+            b = cc.cluster_mean_bias
+
+        nzh = max(int((zh_max-zh_min)/0.1), 1) # at least one redshift slice
+        zh_bins = np.linspace(zh_min, zh_max, nzh+1)
+        zh_min_list = zh_bins[:-1]
+        zh_max_list = zh_bins[1:]
+
+        C_ell_sum = np.zeros(len(self.ell)) # direct summation over chi
+        vol_sum = 0
+        for izh in range(nzh):
+            zh_mid = 0.5*(zh_min_list[izh]+zh_max_list[izh])
+            chi_h = self.chi(z=zh_mid).value
+            dchi_h = self.chi(z=zh_max_list[izh]).value - self.chi(z=zh_min_list[izh]).value
+            vol_sum += dchi_h * chi_h**2
+            # power spectrum (linear); halo-matter cross = b * P_mm
+            lin = LinearTheory(cosmo=self.cosmo_ying, z=zh_mid)
+            pk_lin = lin.power_spectrum
+            k = (self.ell+0.5)/chi_h
+            Pmm_ell = pk_lin(k)
+            kernel = self.lk.kernel_Sigma_z_interp(zh_mid)
+            summand = dchi_h * kernel * b * Pmm_ell
+            C_ell_sum += summand
+        C_ell_sum = C_ell_sum * self.rho_mean / vol_sum
+
+        self.ell_h_Sigma = self.ell
+        self.C_ell_h_Sigma = C_ell_sum
+
     ###### halo-matter ######
     '''
     def calc_C_ell_h_kappa(self, zh_min, zh_max, Mmin, Mmax):

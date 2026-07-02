@@ -65,13 +65,15 @@ class CovDeltaSigma(object):
         ell_list = np.exp(lnell_list)
 
         ## calculating cosmic shear contribution, from 0.1 to zs_max (zs_max can be up to 2), and interpolate
+        ## C_ell_Sigma depends only on zh_mid (not the radial bin) -> compute once, like C_ell_h
         zh_mid = 0.5*(zh_min+zh_max)
-        if self.slicing == False: ## default: LSS from 0 to zs_max
-            self.aps.calc_C_ell_Sigma(zl_min=0.1, zl_max=min(2,self.su.zs_max-0.1), zh=zh_mid)
-        if self.slicing == True: ## slicing: from zh-dz to zh+dz
-            self.aps.calc_C_ell_Sigma(zl_min=zh_mid-self.dz_slicing, zl_max=zh_mid+self.dz_slicing, zh=zh_mid)
-            print('zh_mid', zh_mid)
-            print('slicing z', zh_mid-self.dz_slicing, zh_mid+self.dz_slicing)
+        if ith1 == 0 and ith2 == 0:
+            if self.slicing == False: ## default: LSS from 0 to zs_max
+                self.aps.calc_C_ell_Sigma(zl_min=0.1, zl_max=min(2,self.su.zs_max-0.1), zh=zh_mid)
+            if self.slicing == True: ## slicing: from zh-dz to zh+dz
+                self.aps.calc_C_ell_Sigma(zl_min=zh_mid-self.dz_slicing, zl_max=zh_mid+self.dz_slicing, zh=zh_mid)
+                print('zh_mid', zh_mid)
+                print('slicing z', zh_mid-self.dz_slicing, zh_mid+self.dz_slicing)
 
         C_ell_Sigma_interp = interp1d(self.aps.ell_Sigma, self.aps.C_ell_Sigma)
         
@@ -89,12 +91,11 @@ class CovDeltaSigma(object):
             halo = C_ell_h_interp(ell_list)
             print('cosmic shear only')
 
-        '''
-        ## TODO!
-        ## calculating the contribution from halo profile: C_ell_hk
-        self.aps.calc_C_ell_h_Sigma(zh_min=zh_min, zh_max=zh_max, Mmin=Mmin, Mmax=Mmax)
+        ## halo-Sigma cross power (linear bias), radial-bin independent -> compute once
+        if ith1 == 0 and ith2 == 0:
+            self.aps.calc_C_ell_h_Sigma(zh_min=zh_min, zh_max=zh_max, lambda_min=lambda_min, lambda_max=lambda_max)
         C_ell_h_Sigma_interp = interp1d(self.aps.ell_h_Sigma, self.aps.C_ell_h_Sigma)
-        '''
+
         ## the J2 part of the integration
         geometry = self.bf.j2_bin(ell_list, thmin1, thmax1) * self.bf.j2_bin(ell_list, thmin2, thmax2) * ell_list**2 / (2.*np.pi)
 
@@ -104,13 +105,13 @@ class CovDeltaSigma(object):
         ## contribution from shape noise, (C_ell^h + halo shot) * shape noise
         integrand_shape_noise = halo * self.aps.shape_noise_for_Sigma * geometry
 
-        ## contribution from halo intrinsic profile, C_ell^hk ** 2  # TODO
-        #integrand_halo_intrinsic = C_ell_h_Sigma_interp(ell_list)**2 * geometry
+        ## cross contribution, (C_ell^hSigma)^2  (eq. 22, third term in the bracket)
+        integrand_cross = C_ell_h_Sigma_interp(ell_list)**2 * geometry
 
         ## integration over ell!
         self.cosmic_shear_integration = np.trapz(integrand_cosmic_shear, x=lnell_list)
         self.shape_noise_integration = np.trapz(integrand_shape_noise, x=lnell_list)
-        #self.halo_intrinsic_integration = np.trapz(integrand_halo_intrinsic, x=lnell_list) # TODO
+        self.cross_integration = np.trapz(integrand_cross, x=lnell_list)
 
     def calc_cov(self, rp_min, rp_max, n_rp, zh_min, zh_max, lambda_min=None, lambda_max=None, diag_only=False):
         """ calling self._calc_C_ell_integration, calculating the cov for *multiple bins*
@@ -125,9 +126,11 @@ class CovDeltaSigma(object):
             diag_only (bool): if True, calculating only the diagnal elements, off-diag will be zero
 
         Returns:
-            cov_cosmic_shear, cov_shape_noise, cov_halo_intrinsic
+            rp_mid_list, cov_cosmic_shear, cov_shape_noise
+            (backward compatible 3-tuple; the (C_ell^hSigma)^2 cross term of
+             eq. 22, linear bias, is available as the attribute self.cov_cross,
+             and is already included in self.cov_sum)
             units all in Msun^2/pc^4
-            one can also directly access these as attributes
         """
         zh_mid = 0.5*(zh_min+zh_max)
         chi_h = self.chi(z=zh_mid).value
@@ -148,7 +151,7 @@ class CovDeltaSigma(object):
 
         self.cov_cosmic_shear = np.zeros([nth, nth])
         self.cov_shape_noise = np.zeros([nth, nth])
-        #self.cov_halo_intrinsic = np.zeros([nth, nth])
+        self.cov_cross = np.zeros([nth, nth])
 
         if diag_only==True: ## only calculating the diagonal elements
             for ith1 in range(nth):
@@ -156,7 +159,7 @@ class CovDeltaSigma(object):
                 self._calc_C_ell_integration(thmin1=thmin_list[ith1], thmax1=thmax_list[ith1], thmin2=thmin_list[ith2], thmax2=thmax_list[ith2], zh_min=zh_min, zh_max=zh_max, lambda_min=lambda_min, lambda_max=lambda_max, ith1=ith1, ith2=ith2)
                 self.cov_shape_noise[ith1,ith1] = factor*self.shape_noise_integration
                 self.cov_cosmic_shear[ith1,ith1] = factor*self.cosmic_shear_integration
-                #self.cov_halo_intrinsic[ith1,ith1] = factor*self.halo_intrinsic_integration
+                self.cov_cross[ith1,ith1] = factor*self.cross_integration
 
         if diag_only==False: ## calculating the off-diagonal elements
             for ith1 in range(nth):
@@ -164,24 +167,24 @@ class CovDeltaSigma(object):
                     self._calc_C_ell_integration(thmin1=thmin_list[ith1], thmax1=thmax_list[ith1], thmin2=thmin_list[ith2], thmax2=thmax_list[ith2], zh_min=zh_min, zh_max=zh_max, lambda_min=lambda_min, lambda_max=lambda_max, ith1=ith1, ith2=ith2)
                     self.cov_shape_noise[ith1, ith2] = factor*self.shape_noise_integration
                     self.cov_cosmic_shear[ith1, ith2] = factor*self.cosmic_shear_integration
-                    #self.cov_halo_intrinsic[ith1, ith2] = factor*self.halo_intrinsic_integration
+                    self.cov_cross[ith1, ith2] = factor*self.cross_integration
 
             ## copy the upper right corner to the lower left corner
             for ith1 in range(nth):
                 for ith2 in range(ith1):
                     self.cov_cosmic_shear[ith1, ith2] = self.cov_cosmic_shear[ith2, ith1]
                     self.cov_shape_noise[ith1, ith2] = self.cov_shape_noise[ith2, ith1]
-                    #self.cov_halo_intrinsic[ith1, ith2] = self.cov_halo_intrinsic[ith2, ith1]
+                    self.cov_cross[ith1, ith2] = self.cov_cross[ith2, ith1]
 
         self.cov_cosmic_shear *= (1e-24) # make it (Msun/pc^2)^2
         self.cov_shape_noise *= (1e-24)
-        #self.cov_halo_intrinsic *= (1e-24)
-        self.cov_sum = self.cov_cosmic_shear + self.cov_shape_noise #+ self.cov_halo_intrinsic
+        self.cov_cross *= (1e-24)
+        self.cov_sum = self.cov_cosmic_shear + self.cov_shape_noise + self.cov_cross
 
         self.rp_min_list = thmin_list * chi_h
         self.rp_max_list = thmax_list * chi_h
         self.rp_mid_list = thmid_list * chi_h
-        return self.rp_mid_list, self.cov_cosmic_shear, self.cov_shape_noise #, self.cov_halo_intrinsic
+        return self.rp_mid_list, self.cov_cosmic_shear, self.cov_shape_noise
 
 
 
