@@ -29,8 +29,8 @@ class LensingProfiles(object):
 
         # astropy
         #astropy_dist = FlatLambdaCDM(H0=self.co.h*100, Om0=self.co.OmegaM)
-        astropy_dist = w0waCDM(H0=self.cp.h*100, Om0=self.cp.OmegaM, Ode0=self.cp.OmegaDE,
-            w0=self.cp.w0, wa=self.cp.wa)
+        astropy_dist = w0waCDM(H0=self.co.h*100, Om0=self.co.OmegaM, Ode0=self.co.OmegaDE,
+            w0=self.co.w0, wa=self.co.wa)
         self.chi = astropy_dist.comoving_distance
 
     def calc_DeltaSigma(self):

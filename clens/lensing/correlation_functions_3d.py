@@ -6,7 +6,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp1d
 
-from clens.ying.param import CosmoParams
+#from clens.ying.param import CosmoParams
+from clens.ying.param_w0wa import CosmoParams
+
 from clens.ying.lineartheory import LinearTheory
 from clens.ying.density import Density
 from clens.ying.nfw import NFW

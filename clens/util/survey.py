@@ -20,7 +20,7 @@ class Survey(dict):
         if zs_min == None:
             zs_min = 0
         if zs_max == None:
-            zs_max = 3
+            zs_max = 5
 
         self.zs_min = zs_min
         self.zs_max = zs_max
@@ -30,7 +30,7 @@ class Survey(dict):
                 print('using top-hat redshift distribution')
 
             if self.top_hat == False:
-                print('using a whale-shaped p(z)')
+                #print('using a whale-shaped p(z)')
                 self.z_star_src = z_star_src
                 self.m_src = m_src
                 self.beta_src = beta_src

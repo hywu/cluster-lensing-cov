@@ -103,6 +103,8 @@ class Covgammat(object):
         ## contribution from shape noise, (C_ell^h + halo shot) * shape noise
         integrand_shape_noise = halo * self.aps.shape_noise * geometry
 
+        
+
         # print('compare integrand')
         # print('cosmic shear', halo * C_ell_kappa_interp(ell_list))
         # print('intrinsic', C_ell_h_kappa_interp(ell_list)**2)

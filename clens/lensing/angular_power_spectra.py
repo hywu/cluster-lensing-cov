@@ -96,8 +96,10 @@ class AngularPowerSpectra(object):
         self.ell_kappa = self.ell
         self.C_ell_kappa = C_ell_sum
 
-        n_src_sr = self.su.n_src_arcmin/cn.arcmin_to_radian**2 # TODO: I should integrate above zh+0.01??
+        ## calculate the new n_src for sources behind zh_max + 0.1
+        n_src_sr = self.su.n_src_arcmin/cn.arcmin_to_radian**2
         self.shape_noise = self.su.sigma_gamma**2/n_src_sr
+        # will be multiplied by the fraction of sources behind zlens + 0.1, in cov_gammat.py
         #print('n_src_sr', n_src_sr)
 
 
@@ -166,7 +168,9 @@ class AngularPowerSpectra(object):
         area_sr = 4.*np.pi*survey_area_sq_deg/41253.
 
         try: # are we using PrecalculatedCountsBias() ? 
-            n_h_sr = self.sr.lens_counts/area_sr
+            fsky = self.sr.fsky
+            n_h_sr = self.sr.lens_counts/(4*np.pi*fsky)            
+            #n_h_sr = self.sr.lens_counts/area_sr
             b = self.sr.lens_bias
             #print('use precalculated counts and bias')
 

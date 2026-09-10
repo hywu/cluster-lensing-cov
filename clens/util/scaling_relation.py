@@ -112,9 +112,10 @@ class Murata18ScalingRelation(object):
 
 
 class PrecalculatedCountsBias(object):
-    def __init__(self, lens_counts, lens_bias):
+    def __init__(self, lens_counts, lens_bias, fsky):
         self.lens_counts = lens_counts
         self.lens_bias = lens_bias
+        self.fsky = fsky
 
 
 def plot_lambda_M(scaling_relation, label=None):
