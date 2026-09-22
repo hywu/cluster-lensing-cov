@@ -85,15 +85,15 @@ class LensingKernel(object):
 
     def mean_Sigma_crit(self, zh):
         chi_h = self.chi(z=zh).value
-        zs_list = np.linspace(max(zh+0.01,self.su.zs_min), self.su.zs_max, 100)
+        zs_list = np.linspace(max(zh+0.1,self.su.zs_min), self.su.zs_max, 100) # zh + 0.1
         ns_list = self.su.pz_src(zs_list)
         chi_s = self.chi(z=zs_list).value
         Sigma_crit_halo = (cn.c)**2/(4.*np.pi*cn.G)*chi_s / chi_h /(chi_s - chi_h)/(1.+zh) #Msun/Mpc^2
         integrand = ns_list * Sigma_crit_halo
-        return np.trapz(integrand, x=zs_list)
+        return np.trapz(integrand, x=zs_list) / np.trapz(ns_list, x=zs_list) # redo the normalization
 
     def fsrc_behind_zh(self, zh):
-        zs_list = np.linspace(max(zh+0.01,self.su.zs_min), self.su.zs_max, 100)
+        zs_list = np.linspace(max(zh+0.1,self.su.zs_min), self.su.zs_max, 100) # Note! zh + 0.1
         ns_list = self.su.pz_src(zs_list)
         return np.trapz(ns_list, x=zs_list)
 

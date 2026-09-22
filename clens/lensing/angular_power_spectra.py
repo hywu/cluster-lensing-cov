@@ -85,7 +85,6 @@ class AngularPowerSpectra(object):
                 pknl   = nonlin.pk_NL(k)
                 pk_lin = interp1d(k, pknl)
 
-
             #pk_lin = lin.power_spectrum
             k = (self.ell+0.5)/chi_l
             #print('k range', min(k), max(k))
@@ -96,10 +95,10 @@ class AngularPowerSpectra(object):
         self.ell_kappa = self.ell
         self.C_ell_kappa = C_ell_sum
 
-        ## calculate the new n_src for sources behind zh_max + 0.1
-        n_src_sr = self.su.n_src_arcmin/cn.arcmin_to_radian**2
+    def calc_shape_noise(self, zh): # New 9/2026
+        ## calculate the new n_src for sources behind zh + 0.1
+        n_src_sr = self.su.n_src_arcmin * self.lk.fsrc_behind_zh(zh)/cn.arcmin_to_radian**2
         self.shape_noise = self.su.sigma_gamma**2/n_src_sr
-        # will be multiplied by the fraction of sources behind zlens + 0.1, in cov_gammat.py
         #print('n_src_sr', n_src_sr)
 
 
@@ -148,8 +147,8 @@ class AngularPowerSpectra(object):
 
         #print('fsrc_behind_zh =', zh, self.lk.fsrc_behind_zh(zh))
         n_src_sr = self.su.n_src_arcmin * self.lk.fsrc_behind_zh(zh)/cn.arcmin_to_radian**2
-        mean_Sigma_crit = self.lk.mean_Sigma_crit(zh=zh)
-        #print('mean_Sigma_crit %g'%(mean_Sigma_crit*1e-12))
+        mean_Sigma_crit = self.lk.mean_Sigma_crit(zh=zh) # normalized with p(z)
+        print('mean_Sigma_crit %g'%(mean_Sigma_crit*1e-12))
         self.shape_noise_for_Sigma = self.su.sigma_gamma**2/n_src_sr * mean_Sigma_crit**2 
         #print('self.shape_noise_for_Sigma %g'%(self.shape_noise_for_Sigma*1e-24))
 

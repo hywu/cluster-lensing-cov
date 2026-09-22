@@ -71,6 +71,9 @@ class Covgammat(object):
             zh_mid = 0.5*(zh_min+zh_max)
             self.aps.calc_C_ell_kappa(zl_min=zh_mid-self.dz_slicing, zl_max=zh_mid+self.dz_slicing)
 
+        ## calculating shape noise
+        self.aps.calc_shape_noise(zh_max)
+
         C_ell_kappa_interp = interp1d(self.aps.ell_kappa, self.aps.C_ell_kappa)
 
         if self.no_halo == True: ## only calculating cosmic shear + shape noise
